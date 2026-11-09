@@ -1,6 +1,6 @@
 # LAUNCH_KIT — PortDoctor v0.1.0
 
-Textes prêts à publier. Avant de poster : relire, adapter le ton, joindre un GIF ou une capture (`assets/ui-preview.png`, `assets/ui-smartkill.png`) et **respecter les règles d'auto-promotion de chaque communauté** (flair « Show & Tell » / « Project », pas de multi-posts le même jour, répondre aux commentaires).
+Textes prêts à publier. Avant de poster : relire, adapter le ton, joindre **`assets/demo.gif`** (0,7 Mo, ~7 s : média principal de toutes les publications) ou, à défaut, une capture (`assets/ui-preview.png`, `assets/ui-smartkill.png`) et **respecter les règles d'auto-promotion de chaque communauté** (flair « Show & Tell » / « Project », pas de multi-posts le même jour, répondre aux commentaires).
 
 - Repo : https://github.com/TxF-AI/port-doctor
 - Release : https://github.com/TxF-AI/port-doctor/releases/tag/v0.1.0 (`port-doctor.exe`, 4,3 Mo)
@@ -13,6 +13,8 @@ Textes prêts à publier. Avant de poster : relire, adapter le ton, joindre un G
 ## 1. Reddit — Show & Tell
 
 **Subreddits :** `r/rust` (flair *project*), `r/windows`, `r/programming` (lien vers le repo), `r/CoolGithubProjects`. Un subreddit par jour.
+
+**Média :** joindre `assets/demo.gif` (upload natif Reddit, ou lien image : https://github.com/TxF-AI/port-doctor/raw/main/assets/demo.gif).
 
 **Titre (au choix)**
 - `Tired of "EADDRINUSE: port 3000 already in use" and hunting zombie node.exe, so I built a tiny Rust/Tauri tray tool that frees the port in one click`
@@ -51,6 +53,8 @@ It's v0.1.0 — I'd love **feedback**: processes it should (not) kill, WSL2/Dock
 
 **URL :** https://github.com/TxF-AI/port-doctor
 
+**Média :** HN n'héberge pas d'images : `assets/demo.gif` s'affiche en tête de la section « Aperçu » du README du dépôt. Ajouter dans le premier commentaire : `Demo (8 s): https://github.com/TxF-AI/port-doctor/raw/main/assets/demo.gif`
+
 **Premier commentaire**
 
 Hi HN, author here.
@@ -73,7 +77,7 @@ Feedback welcome, especially on what a tool like this should refuse to kill.
 
 ## 3. X (Twitter) & LinkedIn
 
-**Média à joindre :** GIF de 10–15 s : serveur de dev qui plante en `EADDRINUSE` → clic sur l'icône du tray → filtre « Dev ports » → Kill → modale Smart Kill → confirmer → relancer le serveur. Ou à défaut `assets/ui-preview.png` + `assets/ui-smartkill.png`.
+**Média à joindre :** `assets/demo.gif` (X : GIF natif ; LinkedIn : ajouter comme image/GIF au post, 1er commentaire = lien du repo). En secours : `assets/ui-preview.png` + `assets/ui-smartkill.png`.
 
 **X (≤ 280 caractères)**
 
@@ -131,6 +135,8 @@ github.com/TxF-AI/port-doctor — feedback very welcome!
 ## 4. Discord — #showcase
 
 **Salons :** Discord officiel Tauri (`#showcase`), DevFR (salon projets), serveurs Rust FR/EN. Lire les règles avant de poster.
+
+**Média :** joindre `assets/demo.gif` directement dans le message (limite Discord largement respectée).
 
 **Message (EN)**
 ```
