@@ -67,7 +67,7 @@ const DICT = {
     stat_ranges: "Excluded ranges",
     stat_ram: "Backend RAM",
     empty: "No matching port.",
-    banner: ({ ports }) => `Windows reserves port ranges: ${ports} fall(s) inside an excluded range (Hyper-V / WinNAT).`,
+    banner: ({ ports }) => `Port(s) ${ports} fall inside a range reserved by Windows (Hyper-V / WinNAT).`,
     status_ok: ({ n, time }) => `${n} entries · updated ${time}`,
     kill: "Kill",
     confirm: "Confirm?",

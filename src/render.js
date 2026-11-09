@@ -1,0 +1,65 @@
+// Rendu du tableau, des compteurs, de la bannière et du pied de page.
+import { t } from "./i18n.js";
+import { state, $, esc, rowKey, fmtMem, inExcluded, visible } from "./state.js";
+
+export function renderStats() {
+  const dev = new Set(state.ports.filter((p) => p.is_dev_port).map((p) => p.port)).size;
+  const conflicts = state.ports.filter((p) => inExcluded(p.port)).length;
+  const active = new Set(state.ports.filter((p) => p.proto === "TCP").map((p) => p.port)).size;
+  $("stats").innerHTML = `
+    <div class="stat ok">${esc(t("stat_tcp"))}<b>${active}</b></div>
+    <div class="stat">${esc(t("stat_dev"))}<b>${dev}</b></div>
+    <div class="stat ${conflicts ? "warn" : ""}">${esc(t("stat_conflicts"))}<b>${conflicts}</b></div>
+    <div class="stat">${esc(t("stat_ranges"))}<b>${state.ranges.length}</b></div>
+    <div class="stat">${esc(t("stat_ram"))}<b>${fmtMem(state.backendMem)}</b></div>`;
+}
+
+export function renderRows() {
+  const list = visible();
+  $("empty").hidden = list.length > 0;
+  $("rows").innerHTML = list
+    .map((p) => {
+      const key = rowKey(p);
+      const armed = state.armed === key;
+      const ex = inExcluded(p.port);
+      const tree = p.parent_name && /^(npm|npx|pnpm|yarn|cmd|powershell|pwsh)(\.exe|\.cmd)?$/i.test(p.parent_name);
+      const tags =
+        (p.is_dev_port ? `<span class="tag info">${esc(t("tag_dev"))}</span>` : "") +
+        (ex ? `<span class="tag warn" title="${esc(t("tag_range", { a: ex.start, b: ex.end }))}">${esc(t("tag_hyperv"))}</span>` : "") +
+        (tree ? `<span class="tag" title="${esc(t("tag_parent", { name: p.parent_name, pid: p.parent_pid }))}">via ${esc(p.parent_name)}</span>` : "");
+      const btn = p.protected
+        ? `<button class="kill" disabled title="${esc(t("protected_title"))}">${esc(t("protected"))}</button>`
+        : `<button class="kill${armed ? " armed" : ""}" data-key="${esc(key)}" data-pid="${p.pid}">${esc(armed ? t("confirm") : t("kill"))}</button>`;
+      return `<tr class="${p.is_dev_port ? "dev" : ""}${ex ? " conflict" : ""}">
+        <td class="port">${p.port}</td>
+        <td>${esc(p.proto)}</td>
+        <td title="${esc(p.exe_path ?? "")}&#10;${esc(p.addresses.join(", "))}">${esc(p.process_name)}${tags}</td>
+        <td class="num">${p.pid}</td>
+        <td class="num">${fmtMem(p.memory_bytes)}</td>
+        <td>${esc(p.source)}</td>
+        <td>${btn}</td></tr>`;
+    })
+    .join("");
+  document.querySelectorAll("thead th[data-k]").forEach((th) => th.classList.toggle("sorted", th.dataset.k === state.sort.key));
+}
+
+export function renderStatus() {
+  const s = state.status;
+  let html = "…";
+  if (s.kind === "ok") html = esc(t("status_ok", { n: s.n, time: s.time.toLocaleTimeString(t("locale")) }));
+  else if (s.kind === "good") html = `<span class="good">${esc(s.text(t))}</span>`;
+  else if (s.kind === "err") html = `<span class="err">${esc(s.text)}</span>`;
+  $("status").innerHTML = html;
+}
+
+export function renderBanner() {
+  const b = $("banner");
+  const hit = state.ports.filter((p) => p.is_dev_port && inExcluded(p.port));
+  b.hidden = hit.length === 0;
+  b.className = "banner warn";
+  if (hit.length) b.textContent = t("banner", { ports: [...new Set(hit.map((p) => p.port))].join(", ") });
+}
+
+export function renderAll() {
+  renderStats(); renderBanner(); renderRows(); renderStatus();
+}
