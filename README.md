@@ -18,6 +18,18 @@ Un `npm run dev` fermé à la va-vite, un `node.exe` zombie qui tient encore le 
 
 **PortDoctor** liste tous les ports en écoute, te dit qui les tient (processus, chemin, mémoire, provenance Host / WSL2 / Docker) et libère le port en un clic, avec des garde-fous pour ne jamais toucher à Windows. Application native (Rust + Tauri v2), un seul exécutable portable de ~4,5 Mo, discrète dans le System Tray. Rien n'est envoyé sur Internet.
 
+## 🎨 Aperçu de l'Interface
+
+![PortDoctor UI](assets/ui-preview.png)
+
+Interface **HUD cyberpunk compacte**, affichée depuis l'icône du **System Tray** (clic gauche). Le tableau dense liste les ports **TCP et UDP** avec PID, processus, mémoire et **source** : `Host`, `WSL2 (Ubuntu)` ou `Docker`. La barre de compteurs résume les ports actifs, les **Dev ports** (filtre et liseré bleu), les **conflits Hyper-V** (liseré et badge ambre, ici le port 5000 tombe dans une plage réservée) ; les processus système sont verrouillés (`Protégé`). Le champ de recherche (`Ctrl+F`) filtre par port, nom ou PID.
+
+![PortDoctor Smart Kill](assets/ui-smartkill.png)
+
+Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bouton **Kill** ouvre la modale de **Smart Kill** : elle liste l'arbre exact (parents, processus du port, enfants) et permet d'exclure les parents avant d'arrêter.
+
+> Les captures utilisent des **données de démonstration** (aucun nom d'utilisateur ni processus réel de la machine).
+
 ## Fonctionnalités
 
 | Fonction | Détail |
