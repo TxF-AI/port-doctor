@@ -1,7 +1,9 @@
 # PortDoctor (v0.1.0)
 
+🇬🇧 [English version](README.en.md)
+
 [![Latest Release](https://img.shields.io/github/v/release/TxF-AI/port-doctor?label=Release&color=00e5ff)](https://github.com/TxF-AI/port-doctor/releases/latest)
-![Size](https://img.shields.io/badge/Size-~4.5%20MB-1e2230)
+![Size](https://img.shields.io/badge/Size-4.3%20MB-1e2230)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078d4)
 ![Tech Stack](https://img.shields.io/badge/Tech%20Stack-Rust%20%2B%20Tauri%20v2-f74c00)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -16,7 +18,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 
 Un `npm run dev` fermé à la va-vite, un `node.exe` zombie qui tient encore le port 3000, un `postgres` oublié dans WSL2, une plage de ports réservée par Hyper-V sans que tu le saches : tu perds dix minutes à chercher `netstat -ano | findstr :3000`, puis `taskkill`.
 
-**PortDoctor** liste tous les ports en écoute, te dit qui les tient (processus, chemin, mémoire, provenance Host / WSL2 / Docker) et libère le port en un clic, avec des garde-fous pour ne jamais toucher à Windows. Application native (Rust + Tauri v2), un seul exécutable portable de ~4,5 Mo, discrète dans le System Tray. Rien n'est envoyé sur Internet.
+**PortDoctor** liste tous les ports en écoute, te dit qui les tient (processus, chemin, mémoire, provenance Host / WSL2 / Docker) et libère le port en un clic, avec des garde-fous pour ne jamais toucher à Windows. Application native (Rust + Tauri v2), un seul exécutable portable de 4,3 Mo, discrète dans le System Tray. Rien n'est envoyé sur Internet.
 
 ## 🎨 Aperçu de l'Interface
 
