@@ -12,7 +12,7 @@ Textes prêts à publier. Avant de poster : relire, adapter le ton, joindre **`a
 
 ## 1. Reddit — Show & Tell
 
-**Subreddits :** `r/rust` (flair *project*), `r/windows`, `r/programming` (lien vers le repo), `r/CoolGithubProjects`. Un subreddit par jour.
+**Subreddits :** là où le problème se vit d'abord : `r/node`, `r/webdev` (titre centré sur la douleur, pas sur Tauri ; lire leurs règles d'auto-promotion), puis `r/rust` (flair *project*), `r/windows`, `r/programming` (lien vers le repo), `r/CoolGithubProjects`. Un subreddit par jour.
 
 **Média :** joindre `assets/demo.gif` (upload natif Reddit, ou lien image : https://github.com/TxF-AI/port-doctor/raw/main/assets/demo.gif).
 
