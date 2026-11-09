@@ -84,14 +84,13 @@ Feedback welcome, especially on what a tool like this should refuse to kill.
 ```
 EADDRINUSE again? 😤
 
-PortDoctor 🔌 lives in your Windows tray (Rust + Tauri v2, 4.3 MB):
+PortDoctor 🔌 sits in your Windows tray (Rust + Tauri v2, 4.3 MB):
 💥 free a port in 1 click
-🌳 Smart Kill of the whole npm → node tree
+🌳 Smart Kill of npm → node trees
 🐧 WSL2 / Docker labels
-⚠️ Hyper-V reserved ranges
 
 MIT 👉 github.com/TxF-AI/port-doctor
-#RustLang #Tauri #BuildInPublic #OpenSource
+#RustLang #Tauri #OpenSource
 ```
 
 **X (thread, 2ᵉ tweet)**
