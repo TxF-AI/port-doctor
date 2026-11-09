@@ -1,7 +1,7 @@
 mod models;
 mod ports;
 
-use models::{ExcludedRange, KillOutcome, PortEntry};
+use models::{ExcludedRange, KillOutcome, PortEntry, TreeMember};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, WindowEvent};
@@ -16,6 +16,19 @@ async fn get_active_ports() -> Result<Vec<PortEntry>, String> {
 #[tauri::command]
 async fn kill_port_process(pid: u32) -> Result<KillOutcome, String> {
     ports::kill_listener(pid, std::process::id())
+}
+
+/// Smart Kill : arrête le processus d'un port, ses descendants et, si `include_parents`,
+/// ses lanceurs npm/yarn/nodemon. Mêmes garde-fous sur chaque processus de l'arbre.
+#[tauri::command]
+async fn kill_process_tree(pid: u32, include_parents: bool) -> Result<bool, String> {
+    ports::kill_tree(pid, std::process::id(), include_parents)
+}
+
+/// Aperçu de l'arbre qu'un Smart Kill arrêterait (lecture seule).
+#[tauri::command]
+async fn preview_kill_tree(pid: u32) -> Result<Vec<TreeMember>, String> {
+    ports::preview_tree(pid, std::process::id())
 }
 
 /// Plages de ports TCP exclues par Windows (Hyper-V / WinNAT), lecture seule.
@@ -92,6 +105,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_active_ports,
             kill_port_process,
+            kill_process_tree,
+            preview_kill_tree,
             get_excluded_ranges,
             get_backend_memory
         ])

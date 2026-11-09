@@ -37,6 +37,17 @@
 
       <footer class="foot"><span id="status">…</span></footer>
     </div>
+    <dialog id="treeDlg">
+      <h2>Arrêter cet arbre de processus ?</h2>
+      <p id="treeIntro" class="dim"></p>
+      <ul id="treeList" class="tree"></ul>
+      <label class="chk" id="parentsRow"><input id="withParents" type="checkbox" checked /> Inclure les processus parents (lanceurs npm / yarn…)</label>
+      <p class="dim small">Les processus système (svchost, lsass, System…) ne sont jamais arrêtés : s'il y en a un dans l'arbre, l'opération est refusée.</p>
+      <div class="actions">
+        <button id="treeCancel" class="btn" type="button">Annuler</button>
+        <button id="treeOk" class="kill armed" type="button">Arrêter l'arbre</button>
+      </div>
+    </dialog>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

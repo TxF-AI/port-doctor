@@ -31,6 +31,15 @@ pub struct ExcludedRange {
     pub administered: bool,
 }
 
+/// Un processus de l'arbre qu'un Smart Kill s'apprête à arrêter.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct TreeMember {
+    pub pid: u32,
+    pub name: String,
+    /// "parent" (lanceur npm/yarn…), "target" (détient le port) ou "child".
+    pub role: &'static str,
+}
+
 /// Résultat d'un arrêt de processus.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct KillOutcome {

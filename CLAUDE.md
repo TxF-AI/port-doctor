@@ -13,7 +13,9 @@ Gestionnaire de paquets : **npm**. Dans un shell déjà ouvert : `$env:Path += "
 - Tests Rust : `cd src-tauri && cargo test`
 - Lint : `cd src-tauri && cargo clippy --all-targets` (0 avertissement attendu)
 - Exécutable : `npm run tauri build -- --no-bundle` → `src-tauri\target\release\port-doctor.exe`
-- Backend : `src-tauri/src/models.rs` (types), `ports.rs` (scan, classification, garde-fous, Hyper-V), `lib.rs` (commandes `get_active_ports`, `kill_port_process`, `get_excluded_ranges`, tray).
+- Backend : `src-tauri/src/models.rs` (types), `ports.rs` (scan, classification, garde-fous, Smart Kill `plan_tree`/`kill_tree`, distros WSL2, Hyper-V), `lib.rs` (commandes `get_active_ports`, `kill_port_process`, `kill_process_tree`, `preview_kill_tree`, `get_excluded_ranges`, `get_backend_memory`, tray).
+- Smart Kill : parents arrêtés seulement si lanceurs (`npm`/`yarn`/`pnpm`/`nodemon`, ou `node`/`cmd` dont la ligne de commande les cite) ; jamais PortDoctor ni ses ancêtres ; un processus protégé dans l'arbre = refus total.
+- Publication : `gh repo create TxF-AI/port-doctor --public`, tag annoté `v0.1.0`, `gh release create v0.1.0 <exe> --verify-tag --notes-file <fichier>` avec SHA-256.
 
 ## Conventions Git
 - Commits conventionnels (`feat:`, `fix:`, `docs:`, `refactor:`), en français.
@@ -24,6 +26,12 @@ Gestionnaire de paquets : **npm**. Dans un shell déjà ouvert : `$env:Path += "
 *Mise à jour obligatoire : à chaque commande échouée, bug complexe (> 2 essais) ou comportement inattendu Windows/Rust/Tauri, consigner le problème, la solution et la règle à suivre. Relire ce fichier avant toute tâche lourde.*
 
 Format : **Problème** / **Solution** / **Règle**.
+
+### Smart Kill, Tailwind et dialog
+- **Problème :** `sysinfo::Process::kill()` renvoie `false` pour un parent qui vient de s'arrêter seul (son enfant tué) : faux « accès refusé ». **Solution :** revérifier l'existence du PID (`still_running`) avant de conclure. **Règle :** `kill() == false` ne prouve pas un refus.
+- **Problème :** `<dialog>` collé en haut à gauche. **Cause :** le preflight Tailwind v4 met `margin: 0`. **Solution :** `dialog { margin: auto; }`.
+- **Règle de test :** valider l'UI réelle avec UI Automation (FindAll Button « Kill », filtrer la ligne par son texte, `InvokePattern`), en ne lançant et n'arrêtant que ses propres processus de test.
+- **Problème :** `wsl.exe` sort de l'UTF-16 LE. **Solution :** `--list --running --quiet`, décodage `as_chunks::<2>()`, cache 20 s.
 
 ### Hérité de DevEnv Doctor (même machine, même stack)
 - **Problème :** `cargo` introuvable dans un shell déjà ouvert. **Solution :** `$env:Path += ";$env:USERPROFILE\.cargo\bin"`. **Règle :** vérifier `cargo --version` avant toute tâche Rust.

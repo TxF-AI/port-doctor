@@ -113,10 +113,60 @@ async function loadRanges() {
 
 function disarm() { clearTimeout(state.armTimer); state.armed = null; }
 
+// ── Smart Kill : modale listant l'arbre parent/enfant avant d'arrêter ──
+const dlg = $("treeDlg");
+let treePlan = null; // { pid, members }
+
+function renderTree() {
+  const withParents = $("withParents").checked;
+  const rows = treePlan.members.filter((m) => withParents || m.role !== "parent");
+  const kids = rows.filter((m) => m.role === "child").length;
+  const parents = rows.filter((m) => m.role === "parent").length;
+  $("treeIntro").textContent = `${rows.length} processus seront arrêtés de force${parents ? ` (dont ${parents} parent${parents > 1 ? "s" : ""})` : ""}${kids ? `, ${kids} enfant${kids > 1 ? "s" : ""}` : ""}.`;
+  const label = { parent: "Parent", target: "Port", child: "Enfant" };
+  $("treeList").innerHTML = rows
+    .map((m) => `<li class="${m.role}"><span class="role">${label[m.role]}</span><b>${esc(m.name)}</b><span class="dim">PID ${m.pid}</span></li>`)
+    .join("");
+}
+
+async function openTree(pid, members) {
+  treePlan = { pid, members };
+  $("parentsRow").hidden = !members.some((m) => m.role === "parent");
+  $("withParents").checked = true;
+  renderTree();
+  dlg.showModal();
+}
+
+$("withParents").addEventListener("change", renderTree);
+$("treeCancel").addEventListener("click", () => dlg.close());
+$("treeOk").addEventListener("click", async () => {
+  const { pid } = treePlan;
+  const withParents = $("withParents").checked && !$("parentsRow").hidden;
+  dlg.close();
+  let msg;
+  try {
+    await invoke("kill_process_tree", { pid, includeParents: withParents });
+    msg = `<span class="good">Arbre du PID ${pid} arrêté.</span>`;
+  } catch (e) {
+    msg = `<span class="err">${esc(e)}</span>`;
+  }
+  await refresh();
+  setStatus(msg);
+});
+
 async function onKill(btn) {
   const key = btn.dataset.key;
   if (state.armed !== key) {
-    // 1er clic : armer le bouton 4 s (confirmation visuelle).
+    // Un arbre (enfants ou lanceur npm/yarn) ? → modale explicite. Sinon : bouton armé 4 s.
+    try {
+      const members = await invoke("preview_kill_tree", { pid: Number(btn.dataset.pid) });
+      if (members.length > 1) {
+        disarm();
+        return openTree(Number(btn.dataset.pid), members);
+      }
+    } catch (e) {
+      return setStatus(`<span class="err">${esc(e)}</span>`);
+    }
     disarm();
     state.armed = key;
     state.armTimer = setTimeout(() => { state.armed = null; renderRows(); }, 4000);

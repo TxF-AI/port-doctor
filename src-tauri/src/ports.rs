@@ -2,9 +2,12 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 
 use netstat2::{AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo, TcpState, get_sockets_info};
-use sysinfo::{Pid, ProcessesToUpdate, System};
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
-use crate::models::{ExcludedRange, KillOutcome, PortEntry};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
+
+use crate::models::{ExcludedRange, KillOutcome, PortEntry, TreeMember};
 
 /// Ports de développement courants, mis en avant par l'interface.
 pub const DEV_PORTS: [u16; 10] = [
@@ -117,7 +120,14 @@ fn merge(raw: Vec<RawSocket>, sys: &System) -> Vec<PortEntry> {
 
 fn fresh_system() -> System {
     let mut sys = System::new();
-    sys.refresh_processes(ProcessesToUpdate::All, true);
+    sys.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::nothing()
+            .with_memory()
+            .with_exe(UpdateKind::OnlyIfNotSet)
+            .with_cmd(UpdateKind::OnlyIfNotSet),
+    );
     sys
 }
 
@@ -125,7 +135,252 @@ fn fresh_system() -> System {
 pub fn scan() -> Result<Vec<PortEntry>, String> {
     let raw = raw_listeners()?;
     let sys = fresh_system();
-    Ok(merge(raw, &sys))
+    let mut entries = merge(raw, &sys);
+    if entries.iter().any(|e| e.source == "WSL2") {
+        let label = wsl_label(&running_distros());
+        for e in entries.iter_mut().filter(|e| e.source == "WSL2") {
+            e.source = label.clone();
+        }
+    }
+    Ok(entries)
+}
+
+// ───────────────────────── WSL2 : distributions en cours d'exécution ─────────────────────────
+
+/// Décode la sortie de `wsl.exe` (UTF-16 LE sur la plupart des versions, UTF-8 sinon)
+/// et renvoie les noms de distributions, sans les distributions internes de Docker Desktop.
+pub fn parse_wsl_list(bytes: &[u8]) -> Vec<String> {
+    let text = if bytes.len() >= 2 && bytes.contains(&0) {
+        let (pairs, _) = bytes.as_chunks::<2>();
+        let units: Vec<u16> = pairs.iter().map(|c| u16::from_le_bytes(*c)).collect();
+        String::from_utf16_lossy(&units)
+    } else {
+        String::from_utf8_lossy(bytes).into_owned()
+    };
+    text.lines()
+        .map(|l| l.trim().trim_start_matches('\u{feff}').trim())
+        .map(|l| l.split(" (").next().unwrap_or(l).trim())
+        .filter(|l| !l.is_empty() && !l.to_lowercase().starts_with("docker-desktop"))
+        .map(str::to_string)
+        .collect()
+}
+
+/// `WSL2 (Ubuntu)`, `WSL2 (Ubuntu, Debian)` si plusieurs sont actives (le port ne dit pas
+/// laquelle l'ouvre), ou `WSL2` seul si la liste est indisponible.
+pub fn wsl_label(distros: &[String]) -> String {
+    if distros.is_empty() {
+        "WSL2".to_string()
+    } else {
+        format!("WSL2 ({})", distros.join(", "))
+    }
+}
+
+static WSL_CACHE: Mutex<Option<(Instant, Vec<String>)>> = Mutex::new(None);
+
+/// Distributions actives (`wsl.exe --list --running --quiet`), mises en cache 20 s :
+/// l'interface rafraîchit toutes les 3 s. Lister n'allume pas la VM.
+fn running_distros() -> Vec<String> {
+    use std::os::windows::process::CommandExt;
+    if let Ok(g) = WSL_CACHE.lock()
+        && let Some((t, v)) = g.as_ref()
+        && t.elapsed() < Duration::from_secs(20)
+    {
+        return v.clone();
+    }
+    let list = std::process::Command::new("wsl.exe")
+        .args(["--list", "--running", "--quiet"])
+        .creation_flags(0x0800_0000)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| parse_wsl_list(&o.stdout))
+        .unwrap_or_default();
+    if let Ok(mut g) = WSL_CACHE.lock() {
+        *g = Some((Instant::now(), list.clone()));
+    }
+    list
+}
+
+// ───────────────────────── Smart Kill : arbre de processus ─────────────────────────
+
+/// Vue minimale d'un processus pour calculer un arbre (testable sans système).
+#[derive(Debug, Clone)]
+pub struct ProcInfo {
+    pub pid: u32,
+    pub parent: Option<u32>,
+    pub name: String,
+    pub cmd: String,
+}
+
+fn base_name(name: &str) -> String {
+    let n = name.to_lowercase();
+    n.strip_suffix(".exe")
+        .or_else(|| n.strip_suffix(".cmd"))
+        .unwrap_or(&n)
+        .to_string()
+}
+
+/// Un parent n'est arrêté avec son enfant que s'il ressemble à un lanceur de dev
+/// (`npm`, `yarn`, `nodemon`…). Un shell ou un terminal ordinaire n'en est jamais un.
+pub fn is_launcher(p: &ProcInfo) -> bool {
+    const HINTS: [&str; 9] = [
+        "npm-cli", "npx-cli", "npm run", "npm start", "npm.cmd", "npx ", "pnpm", "yarn", "nodemon",
+    ];
+    let base = base_name(&p.name);
+    match base.as_str() {
+        "npm" | "npx" | "pnpm" | "yarn" | "bun" | "nodemon" => true,
+        "node" | "cmd" => {
+            let cmd = p.cmd.to_lowercase();
+            HINTS.iter().any(|h| cmd.contains(h))
+        }
+        _ => false,
+    }
+}
+
+/// Calcule les processus à arrêter : parents lanceurs (si demandé), cible, descendants.
+/// Garde-fous appliqués à CHAQUE processus : jamais PortDoctor ni ses ancêtres ; un
+/// descendant protégé (svchost, lsass…) fait refuser tout l'arbre.
+pub fn plan_tree(
+    procs: &[ProcInfo],
+    root: u32,
+    own_pid: u32,
+    include_parents: bool,
+) -> Result<Vec<TreeMember>, String> {
+    let by_pid = |pid: u32| procs.iter().find(|p| p.pid == pid);
+    let target = by_pid(root).ok_or_else(|| format!("Le PID {root} n'existe plus."))?;
+    if is_protected(target.pid, &target.name) {
+        return Err(format!("{} (PID {root}) est protégé : arrêt refusé.", target.name));
+    }
+
+    // PortDoctor et tous ses ancêtres sont intouchables (lancé depuis `npm run tauri dev`, p. ex.).
+    let mut safe = vec![own_pid];
+    let mut cur = by_pid(own_pid).and_then(|p| p.parent);
+    while let Some(pid) = cur {
+        if safe.contains(&pid) {
+            break;
+        }
+        safe.push(pid);
+        cur = by_pid(pid).and_then(|p| p.parent);
+    }
+    if safe.contains(&root) {
+        return Err("PortDoctor ne peut pas arrêter son propre arbre de processus.".into());
+    }
+
+    let member = |p: &ProcInfo, role| TreeMember {
+        pid: p.pid,
+        name: p.name.clone(),
+        role,
+    };
+
+    // Parents lanceurs, du plus proche au plus lointain, jusqu'au premier non-lanceur.
+    let mut parents = Vec::new();
+    if include_parents {
+        let mut cur = target.parent;
+        while let Some(pid) = cur {
+            let Some(p) = by_pid(pid) else { break };
+            if !is_launcher(p) || is_protected(p.pid, &p.name) || safe.contains(&pid) {
+                break;
+            }
+            parents.push(member(p, "parent"));
+            cur = p.parent;
+        }
+        parents.reverse(); // du plus haut au plus proche
+    }
+
+    // Descendants (largeur d'abord) ; cycles impossibles grâce à `seen`.
+    let mut children: Vec<TreeMember> = Vec::new();
+    let mut seen = vec![root];
+    let mut queue = vec![root];
+    while let Some(parent) = queue.pop() {
+        for p in procs.iter().filter(|p| p.parent == Some(parent)) {
+            if seen.contains(&p.pid) || p.pid == p.parent.unwrap_or(0) {
+                continue;
+            }
+            seen.push(p.pid);
+            if safe.contains(&p.pid) {
+                continue;
+            }
+            if is_protected(p.pid, &p.name) {
+                return Err(format!(
+                    "L'arbre contient {} (PID {}), processus protégé : arrêt refusé.",
+                    p.name, p.pid
+                ));
+            }
+            children.push(member(p, "child"));
+            queue.push(p.pid);
+        }
+    }
+
+    let mut plan = parents;
+    plan.push(member(target, "target"));
+    plan.extend(children);
+    Ok(plan)
+}
+
+fn snapshot(sys: &System) -> Vec<ProcInfo> {
+    sys.processes()
+        .iter()
+        .map(|(pid, p)| ProcInfo {
+            pid: pid.as_u32(),
+            parent: p.parent().map(|pp| pp.as_u32()),
+            name: p.name().to_string_lossy().into_owned(),
+            cmd: p
+                .cmd()
+                .iter()
+                .map(|a| a.to_string_lossy())
+                .collect::<Vec<_>>()
+                .join(" "),
+        })
+        .collect()
+}
+
+fn still_running(pid: u32) -> bool {
+    std::thread::sleep(Duration::from_millis(150));
+    let mut sys = System::new();
+    let p = Pid::from_u32(pid);
+    sys.refresh_processes(ProcessesToUpdate::Some(&[p]), true);
+    sys.process(p).is_some()
+}
+
+/// Aperçu (lecture seule) de ce qu'un Smart Kill arrêterait, parents lanceurs inclus.
+pub fn preview_tree(pid: u32, own_pid: u32) -> Result<Vec<TreeMember>, String> {
+    let entries = scan()?;
+    guard_kill(pid, own_pid, &entries)?;
+    plan_tree(&snapshot(&fresh_system()), pid, own_pid, true)
+}
+
+/// Arrête l'arbre d'un processus qui détient un port. Ordre : parents (du haut vers le bas,
+/// pour qu'un lanceur ne relance rien), puis descendants du plus profond au plus haut, puis la
+/// cible. `Ok(true)` = tout est arrêté ; `Err` liste ce qui a résisté.
+pub fn kill_tree(pid: u32, own_pid: u32, include_parents: bool) -> Result<bool, String> {
+    let entries = scan()?;
+    guard_kill(pid, own_pid, &entries)?;
+    let sys = fresh_system();
+    let plan = plan_tree(&snapshot(&sys), pid, own_pid, include_parents)?;
+
+    // Descendants : les derniers trouvés sont les plus profonds, on les arrête en premier.
+    let of = |role: &'static str| plan.iter().filter(move |m| m.role == role);
+    let sequence = of("parent").chain(of("child").rev()).chain(of("target"));
+
+    let mut failed = Vec::new();
+    for m in sequence {
+        match sys.process(Pid::from_u32(m.pid)) {
+            Some(p) if p.kill() => {}
+            // kill() est faux aussi quand le processus vient de s'arrêter tout seul
+            // (un parent dont l'enfant meurt) : on revérifie avant de conclure à un refus.
+            Some(_) if !still_running(m.pid) => {}
+            Some(_) => failed.push(format!("{} (PID {})", m.name, m.pid)),
+            None => {} // déjà parti avec son parent
+        }
+    }
+    if failed.is_empty() {
+        Ok(true)
+    } else {
+        Err(format!(
+            "Accès refusé pour : {}. Relance PortDoctor en administrateur.",
+            failed.join(", ")
+        ))
+    }
 }
 
 /// Contrôles avant un arrêt : fonction pure, testée sans toucher à un processus.
@@ -287,6 +542,124 @@ mod tests {
         assert_eq!((r[1].start, r[1].end, r[1].administered), (50000, 50059, true));
         assert!(parse_excluded("rien d'utile").is_empty());
         assert!(parse_excluded("  900  100").is_empty()); // début > fin ignoré
+    }
+
+    fn pi(pid: u32, parent: Option<u32>, name: &str, cmd: &str) -> ProcInfo {
+        ProcInfo { pid, parent, name: name.into(), cmd: cmd.into() }
+    }
+
+    /// explorer(1) → cmd(10, "npm run dev") → npm(11) → node(12, port) → node(13) ; PortDoctor = 99.
+    fn sample() -> Vec<ProcInfo> {
+        vec![
+            pi(1, None, "explorer.exe", ""),
+            pi(10, Some(1), "cmd.exe", "cmd /c npm run dev"),
+            pi(11, Some(10), "node.exe", "node npm-cli.js run dev"),
+            pi(12, Some(11), "node.exe", "node vite.js"),
+            pi(13, Some(12), "node.exe", "node esbuild"),
+            pi(99, Some(1), "port-doctor.exe", ""),
+        ]
+    }
+
+    fn pids(plan: &[TreeMember]) -> Vec<u32> {
+        plan.iter().map(|m| m.pid).collect()
+    }
+
+    #[test]
+    fn tree_plan_with_and_without_parents() {
+        let p = plan_tree(&sample(), 12, 99, true).unwrap();
+        assert_eq!(pids(&p), vec![10, 11, 12, 13]); // explorer.exe n'est pas un lanceur : on s'arrête
+        assert_eq!(p[0].role, "parent");
+        assert_eq!(p[2].role, "target");
+        assert_eq!(p[3].role, "child");
+        let p = plan_tree(&sample(), 12, 99, false).unwrap();
+        assert_eq!(pids(&p), vec![12, 13]);
+    }
+
+    #[test]
+    fn tree_never_touches_ordinary_shells_or_self() {
+        // Parent powershell ordinaire (terminal de l'utilisateur) : jamais arrêté.
+        let procs = vec![
+            pi(1, None, "explorer.exe", ""),
+            pi(20, Some(1), "powershell.exe", "powershell"),
+            pi(21, Some(20), "node.exe", "node server.js"),
+        ];
+        assert_eq!(pids(&plan_tree(&procs, 21, 99, true).unwrap()), vec![21]);
+        // PortDoctor lancé par `npm run tauri dev` : ni lui ni ses ancêtres ne sont ciblés.
+        let mut dev = sample();
+        dev[5] = pi(99, Some(11), "port-doctor.exe", "");
+        // Cible 12 : ses parents 10 et 11 sont des ancêtres de PortDoctor → exclus.
+        let p = plan_tree(&dev, 12, 99, true).unwrap();
+        assert_eq!(pids(&p), vec![12, 13]);
+        assert!(plan_tree(&dev, 11, 99, false).is_err()); // ancêtre de PortDoctor
+        assert!(plan_tree(&dev, 99, 99, true).is_err());
+    }
+
+    #[test]
+    fn tree_refuses_protected_target_or_descendant() {
+        let procs = vec![
+            pi(1, None, "explorer.exe", ""),
+            pi(30, Some(1), "node.exe", "node"),
+            pi(31, Some(30), "svchost.exe", ""),
+        ];
+        assert!(plan_tree(&procs, 30, 99, false).unwrap_err().contains("protégé"));
+        assert!(plan_tree(&[pi(900, None, "lsass.exe", "")], 900, 99, true).is_err());
+        assert!(plan_tree(&procs, 777, 99, true).is_err()); // PID inconnu
+    }
+
+    #[test]
+    fn launcher_detection() {
+        assert!(is_launcher(&pi(1, None, "npm.cmd", "")));
+        assert!(is_launcher(&pi(1, None, "cmd.exe", "cmd /c yarn dev")));
+        assert!(!is_launcher(&pi(1, None, "cmd.exe", "cmd")));
+        assert!(!is_launcher(&pi(1, None, "node.exe", "node server.js")));
+        assert!(!is_launcher(&pi(1, None, "explorer.exe", "")));
+    }
+
+    #[test]
+    fn wsl_list_parsing_and_label() {
+        let utf16: Vec<u8> = "\u{feff}Ubuntu\r\ndocker-desktop\r\nDebian (Default)\r\n"
+            .encode_utf16()
+            .flat_map(|u| u.to_le_bytes())
+            .collect();
+        assert_eq!(parse_wsl_list(&utf16), vec!["Ubuntu", "Debian"]);
+        assert_eq!(parse_wsl_list(b"Ubuntu-22.04\n"), vec!["Ubuntu-22.04"]);
+        assert!(parse_wsl_list(b"").is_empty());
+        assert_eq!(wsl_label(&["Ubuntu".into()]), "WSL2 (Ubuntu)");
+        assert_eq!(wsl_label(&["Ubuntu".into(), "Debian".into()]), "WSL2 (Ubuntu, Debian)");
+        assert_eq!(wsl_label(&[]), "WSL2");
+    }
+
+    /// Test réel : un PowerShell qui écoute et lance un enfant ; kill_tree arrête les deux.
+    #[test]
+    fn kills_a_real_process_tree() {
+        let mut child = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                "$l=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$l.Start();powershell -NoProfile -Command Start-Sleep 60",
+            ])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .expect("powershell requis pour ce test");
+        let pid = child.id();
+        let deadline = Instant::now() + Duration::from_secs(25);
+        let grandchild = loop {
+            let procs = snapshot(&fresh_system());
+            let has_port = scan().unwrap().iter().any(|e| e.pid == pid);
+            if let (true, Some(g)) = (has_port, procs.iter().find(|p| p.parent == Some(pid))) {
+                break g.pid;
+            }
+            assert!(Instant::now() < deadline, "arbre non établi");
+            std::thread::sleep(Duration::from_millis(300));
+        };
+
+        let preview = preview_tree(pid, std::process::id()).unwrap();
+        assert!(preview.iter().any(|m| m.pid == grandchild && m.role == "child"));
+        assert_eq!(kill_tree(pid, std::process::id(), false), Ok(true));
+        assert!(child.wait().is_ok());
+        std::thread::sleep(Duration::from_millis(500));
+        assert!(fresh_system().process(Pid::from_u32(grandchild)).is_none(), "l'enfant doit être arrêté");
     }
 
     #[test]

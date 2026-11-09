@@ -65,6 +65,20 @@ td .sub { color: var(--dim); }
 .kill.armed { background: var(--bad); color: #fff; }
 .kill:disabled { border-color: var(--line); color: var(--dim); cursor: not-allowed; }
 
+dialog { margin: auto; background: var(--surface); color: var(--text); border: 1px solid var(--bad); border-radius: 6px; padding: 18px 20px; width: min(520px, 92vw); font: inherit; }
+dialog::backdrop { background: rgba(5, 6, 10, .72); backdrop-filter: blur(3px); }
+dialog h2 { margin: 0 0 8px; font-size: 15px; }
+.dim { color: var(--dim); }
+.small { font-size: 12px; }
+.tree { list-style: none; margin: 10px 0; padding: 0; border: 1px solid var(--line); border-radius: 4px; max-height: 220px; overflow: auto; }
+.tree li { padding: 5px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: center; }
+.tree li:last-child { border-bottom: 0; }
+.tree .role { min-width: 60px; font-size: 11px; color: var(--dim); }
+.tree li.target { color: var(--bad); }
+.tree li.target .role { color: var(--bad); }
+.tree li.parent .role { color: var(--warn); }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
 .empty { padding: 28px; text-align: center; color: var(--dim); }
 .foot { padding: 6px 14px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; }
 .foot .err { color: var(--bad); }
