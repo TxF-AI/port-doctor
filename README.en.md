@@ -18,7 +18,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 
 A `npm run dev` closed in a hurry, a zombie `node.exe` still holding port 3000, a forgotten `postgres` inside WSL2, a port range silently reserved by Hyper-V: you lose ten minutes hunting with `netstat -ano | findstr :3000`, then `taskkill`.
 
-**PortDoctor** lists every listening port, tells you who holds it (process, path, memory, Host / WSL2 / Docker origin) and frees the port in one click, with guardrails so it never touches Windows itself. Native app (Rust + Tauri v2), a single portable ~4.3 MB executable, discreet in the system tray. Nothing is sent over the Internet. The interface is currently in French.
+**PortDoctor** lists every listening port, tells you who holds it (process, path, memory, Host / WSL2 / Docker origin) and frees the port in one click, with guardrails so it never touches Windows itself. Native app (Rust + Tauri v2), a single portable ~4.3 MB executable, discreet in the system tray. Nothing is sent over the Internet. The interface is **bilingual FR / EN** (selector at the top right; defaults to the system language).
 
 ## 🎨 Interface preview
 
@@ -49,6 +49,7 @@ When a process has children or an `npm` / `yarn` launcher above it, the **Kill**
 | 💥 **One-click Kill** | Forced stop of the process holding the port, after a visual confirmation ("Confirmer ?" on the button). |
 | 🌳 **Smart Kill (tree)** | If the process has children or an `npm` / `yarn` / `pnpm` / `nodemon` launcher above it, a modal lists the exact tree (parents, port owner, children) before stopping. Parents are an opt-in checkbox. |
 | 🛡️ **Guardrails** | `System`, `svchost.exe`, `lsass.exe`, `csrss.exe`, `services.exe`… are locked, in the backend too. A tree containing a protected process is refused as a whole. PortDoctor never stops itself or its ancestors, and an ordinary shell or terminal is never mistaken for a launcher. |
+| 🌐 **Languages** | Interface and backend messages in French or English, your choice (remembered). The tray menu follows the language. |
 | 🐧 **WSL2 mapping** | Ports relayed by `wslrelay.exe` are labelled with the running distribution: `WSL2 (Ubuntu)`. Container ports are marked `Docker`. |
 | ⚠️ **Hyper-V diagnostics** | Reads the port ranges excluded by Windows (`netsh interface ipv4 show excludedportrange`) and warns when a dev port (e.g. 5000) falls inside a reserved range. |
 

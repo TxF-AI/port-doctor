@@ -18,7 +18,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 
 Un `npm run dev` fermé à la va-vite, un `node.exe` zombie qui tient encore le port 3000, un `postgres` oublié dans WSL2, une plage de ports réservée par Hyper-V sans que tu le saches : tu perds dix minutes à chercher `netstat -ano | findstr :3000`, puis `taskkill`.
 
-**PortDoctor** liste tous les ports en écoute, te dit qui les tient (processus, chemin, mémoire, provenance Host / WSL2 / Docker) et libère le port en un clic, avec des garde-fous pour ne jamais toucher à Windows. Application native (Rust + Tauri v2), un seul exécutable portable de 4,3 Mo, discrète dans le System Tray. Rien n'est envoyé sur Internet.
+**PortDoctor** liste tous les ports en écoute, te dit qui les tient (processus, chemin, mémoire, provenance Host / WSL2 / Docker) et libère le port en un clic, avec des garde-fous pour ne jamais toucher à Windows. Application native (Rust + Tauri v2), un seul exécutable portable de 4,3 Mo, discrète dans le System Tray. Rien n'est envoyé sur Internet. Interface **bilingue FR / EN** (sélecteur en haut à droite ; langue du système par défaut).
 
 ## 🎨 Aperçu de l'Interface
 
@@ -49,6 +49,7 @@ Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bout
 | 💥 **Kill 1-clic** | Arrêt forcé du processus qui tient le port, après une confirmation visuelle (« Confirmer ? »). |
 | 🌳 **Smart Kill (arbre)** | Si le processus a des enfants ou un lanceur `npm` / `yarn` / `pnpm` / `nodemon` au-dessus, une modale liste l'arbre exact (parents, port, enfants) avant d'arrêter. Les parents sont une case à cocher. |
 | 🛡️ **Garde-fous** | `System`, `svchost.exe`, `lsass.exe`, `csrss.exe`, `services.exe`… sont verrouillés (« Protégé »), côté backend aussi. Un arbre contenant un processus protégé est refusé en entier. PortDoctor ne s'arrête jamais lui-même ni ses ancêtres, et un shell ou un terminal ordinaire n'est jamais pris pour un lanceur. |
+| 🌐 **Langues** | Interface et messages du backend en français ou en anglais, au choix (mémorisé). Le menu du tray suit la langue. |
 | 🐧 **Mapping WSL2** | Les ports relayés par `wslrelay.exe` sont étiquetés avec la distribution active : `WSL2 (Ubuntu)`. Les ports de conteneurs sont marqués `Docker`. |
 | ⚠️ **Diagnostic Hyper-V** | Lit les plages de ports exclues par Windows (`netsh interface ipv4 show excludedportrange`) et alerte quand un port de dev (ex. 5000) tombe dans une plage réservée. |
 

@@ -29,6 +29,8 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 .chk { display: flex; align-items: center; gap: 6px; color: var(--dim); white-space: nowrap; cursor: pointer; user-select: none; }
 .chk input { accent-color: var(--info); }
 
+select.btn { padding: 5px 8px; }
+select.btn option { background: var(--surface); color: var(--text); }
 .btn { background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 5px 12px; font: inherit; cursor: pointer; white-space: nowrap; }
 .btn:hover:not(:disabled) { border-color: var(--info); color: var(--info); }
 .btn:disabled { opacity: .35; cursor: not-allowed; }

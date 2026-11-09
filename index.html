@@ -9,9 +9,13 @@
     <div id="app">
       <header class="topbar">
         <div class="brand"><span class="led" id="led"></span>PortDoctor <small>v0.1.0</small></div>
-        <input id="filter" type="search" placeholder="Filtrer port / processus…  (Ctrl+F)" autocomplete="off" spellcheck="false" />
-        <label class="chk"><input id="devOnly" type="checkbox" /> Dev ports</label>
-        <button id="refresh" class="btn" title="Rafraîchir (F5)">Rafraîchir</button>
+        <input id="filter" type="search" data-i18n-ph="filter_ph" autocomplete="off" spellcheck="false" />
+        <label class="chk"><input id="devOnly" type="checkbox" /> <span data-i18n="dev_only"></span></label>
+        <button id="refresh" class="btn" data-i18n="refresh" data-i18n-title="refresh_title"></button>
+        <select id="lang" class="btn" data-i18n-title="language" aria-label="Language">
+          <option value="fr">FR</option>
+          <option value="en">EN</option>
+        </select>
       </header>
 
       <section class="stats" id="stats"></section>
@@ -21,31 +25,32 @@
         <table>
           <thead>
             <tr>
-              <th data-k="port">Port</th>
-              <th data-k="proto">Proto</th>
-              <th data-k="process_name">Processus</th>
-              <th data-k="pid" class="num">PID</th>
-              <th data-k="memory_bytes" class="num">Mémoire</th>
-              <th data-k="source">Source</th>
-              <th>Action</th>
+              <th data-k="port" data-i18n="col_port"></th>
+              <th data-k="proto" data-i18n="col_proto"></th>
+              <th data-k="process_name" data-i18n="col_process"></th>
+              <th data-k="pid" class="num" data-i18n="col_pid"></th>
+              <th data-k="memory_bytes" class="num" data-i18n="col_memory"></th>
+              <th data-k="source" data-i18n="col_source"></th>
+              <th data-i18n="col_action"></th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
         </table>
-        <p id="empty" class="empty" hidden>Aucun port ne correspond.</p>
+        <p id="empty" class="empty" data-i18n="empty" hidden></p>
       </main>
 
       <footer class="foot"><span id="status">…</span></footer>
     </div>
+
     <dialog id="treeDlg">
-      <h2>Arrêter cet arbre de processus ?</h2>
+      <h2 data-i18n="dlg_title"></h2>
       <p id="treeIntro" class="dim"></p>
       <ul id="treeList" class="tree"></ul>
-      <label class="chk" id="parentsRow"><input id="withParents" type="checkbox" checked /> Inclure les processus parents (lanceurs npm / yarn…)</label>
-      <p class="dim small">Les processus système (svchost, lsass, System…) ne sont jamais arrêtés : s'il y en a un dans l'arbre, l'opération est refusée.</p>
+      <label class="chk" id="parentsRow"><input id="withParents" type="checkbox" checked /> <span data-i18n="dlg_parents"></span></label>
+      <p class="dim small" data-i18n="dlg_note"></p>
       <div class="actions">
-        <button id="treeCancel" class="btn" type="button">Annuler</button>
-        <button id="treeOk" class="kill armed" type="button">Arrêter l'arbre</button>
+        <button id="treeCancel" class="btn" type="button" data-i18n="cancel"></button>
+        <button id="treeOk" class="kill armed" type="button" data-i18n="stop_tree"></button>
       </div>
     </dialog>
     <script type="module" src="/src/main.js"></script>

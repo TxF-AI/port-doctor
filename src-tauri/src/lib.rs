@@ -1,3 +1,5 @@
+#[macro_use]
+mod i18n;
 mod models;
 mod ports;
 
@@ -43,6 +45,27 @@ async fn get_backend_memory() -> u64 {
     ports::own_memory(std::process::id())
 }
 
+/// Éléments du menu du tray, gardés pour pouvoir changer leur texte quand la langue change.
+struct TrayItems {
+    show: MenuItem<tauri::Wry>,
+    quit: MenuItem<tauri::Wry>,
+}
+
+fn tray_labels() -> (&'static str, &'static str) {
+    (tr!("Afficher PortDoctor", "Show PortDoctor"), tr!("Quitter", "Quit"))
+}
+
+/// Choisit la langue des messages du backend et du menu du tray ("fr" ou "en").
+#[tauri::command]
+fn set_language(app: AppHandle, lang: String) {
+    i18n::set_english(lang.eq_ignore_ascii_case("en"));
+    if let Some(items) = app.try_state::<TrayItems>() {
+        let (show, quit) = tray_labels();
+        let _ = items.show.set_text(show);
+        let _ = items.quit.set_text(quit);
+    }
+}
+
 fn show_main_window(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
@@ -54,9 +77,11 @@ fn show_main_window(app: &AppHandle) {
 /// Branche menu et clics sur l'icône du tray (créée depuis `app.trayIcon` de tauri.conf.json,
 /// sinon construite ici).
 fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
-    let show = MenuItem::with_id(app, "show", "Afficher PortDoctor", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "Quitter", true, None::<&str>)?;
+    let (show_label, quit_label) = tray_labels();
+    let show = MenuItem::with_id(app, "show", show_label, true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", quit_label, true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show, &quit])?;
+    app.manage(TrayItems { show, quit });
 
     let tray: TrayIcon = match app.tray_by_id("main") {
         Some(t) => t,
@@ -108,7 +133,8 @@ pub fn run() {
             kill_process_tree,
             preview_kill_tree,
             get_excluded_ranges,
-            get_backend_memory
+            get_backend_memory,
+            set_language
         ])
         .run(tauri::generate_context!())
         .expect("erreur au lancement de PortDoctor");

@@ -14,6 +14,7 @@ Gestionnaire de paquets : **npm**. Dans un shell déjà ouvert : `$env:Path += "
 - Lint : `cd src-tauri && cargo clippy --all-targets` (0 avertissement attendu)
 - Exécutable : `npm run tauri build -- --no-bundle` → `src-tauri\target\release\port-doctor.exe`
 - Backend : `src-tauri/src/models.rs` (types), `ports.rs` (scan, classification, garde-fous, Smart Kill `plan_tree`/`kill_tree`, distros WSL2, Hyper-V), `lib.rs` (commandes `get_active_ports`, `kill_port_process`, `kill_process_tree`, `preview_kill_tree`, `get_excluded_ranges`, `get_backend_memory`, tray).
+- Langues (FR/EN) : src/i18n.js (dictionnaires, 	()), sélecteur #lang, persistance localStorage, commande set_language (backend : i18n.rs, macro 	r!(fr, en), menu du tray mis à jour). Tout nouveau texte visible = une clé dans les deux langues ; tout message d'erreur Rust = 	r!. Les tests qui lisent un message prennent LANG_LOCK.
 - Smart Kill : parents arrêtés seulement si lanceurs (`npm`/`yarn`/`pnpm`/`nodemon`, ou `node`/`cmd` dont la ligne de commande les cite) ; jamais PortDoctor ni ses ancêtres ; un processus protégé dans l'arbre = refus total.
 - Publication : `gh repo create TxF-AI/port-doctor --public`, tag annoté `v0.1.0`, `gh release create v0.1.0 <exe> --verify-tag --notes-file <fichier>` avec SHA-256.
 

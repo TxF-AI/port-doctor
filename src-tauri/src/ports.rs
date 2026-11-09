@@ -59,7 +59,7 @@ fn raw_listeners() -> Result<Vec<RawSocket>, String> {
         AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6,
         ProtocolFlags::TCP | ProtocolFlags::UDP,
     )
-    .map_err(|e| format!("Lecture des sockets impossible : {e}"))?;
+    .map_err(|e| tr!(format!("Lecture des sockets impossible : {e}"), format!("Cannot read sockets: {e}")))?;
 
     let mut out = Vec::new();
     for s in sockets {
@@ -92,7 +92,7 @@ fn merge(raw: Vec<RawSocket>, sys: &System) -> Vec<PortEntry> {
             let name = match (pid, process) {
                 (0, _) => "System Idle Process".to_string(),
                 (_, Some(p)) => p.name().to_string_lossy().into_owned(),
-                (_, None) => "Inconnu".to_string(),
+                (_, None) => tr!("Inconnu", "Unknown").to_string(),
             };
             let parent = process.and_then(|p| p.parent());
             let parent_name = parent
@@ -247,9 +247,9 @@ pub fn plan_tree(
     include_parents: bool,
 ) -> Result<Vec<TreeMember>, String> {
     let by_pid = |pid: u32| procs.iter().find(|p| p.pid == pid);
-    let target = by_pid(root).ok_or_else(|| format!("Le PID {root} n'existe plus."))?;
+    let target = by_pid(root).ok_or_else(|| tr!(format!("Le PID {root} n'existe plus."), format!("PID {root} no longer exists.")))?;
     if is_protected(target.pid, &target.name) {
-        return Err(format!("{} (PID {root}) est protégé : arrêt refusé.", target.name));
+        return Err(tr!(format!("{} (PID {root}) est protégé : arrêt refusé.", target.name), format!("{} (PID {root}) is protected: stop refused.", target.name)));
     }
 
     // PortDoctor et tous ses ancêtres sont intouchables (lancé depuis `npm run tauri dev`, p. ex.).
@@ -263,7 +263,7 @@ pub fn plan_tree(
         cur = by_pid(pid).and_then(|p| p.parent);
     }
     if safe.contains(&root) {
-        return Err("PortDoctor ne peut pas arrêter son propre arbre de processus.".into());
+        return Err(tr!("PortDoctor ne peut pas arrêter son propre arbre de processus.", "PortDoctor cannot stop its own process tree.").into());
     }
 
     let member = |p: &ProcInfo, role| TreeMember {
@@ -301,9 +301,9 @@ pub fn plan_tree(
                 continue;
             }
             if is_protected(p.pid, &p.name) {
-                return Err(format!(
-                    "L'arbre contient {} (PID {}), processus protégé : arrêt refusé.",
-                    p.name, p.pid
+                return Err(tr!(
+                    format!("L'arbre contient {} (PID {}), processus protégé : arrêt refusé.", p.name, p.pid),
+                    format!("The tree contains {} (PID {}), a protected process: stop refused.", p.name, p.pid)
                 ));
             }
             children.push(member(p, "child"));
@@ -376,9 +376,9 @@ pub fn kill_tree(pid: u32, own_pid: u32, include_parents: bool) -> Result<bool, 
     if failed.is_empty() {
         Ok(true)
     } else {
-        Err(format!(
-            "Accès refusé pour : {}. Relance PortDoctor en administrateur.",
-            failed.join(", ")
+        Err(tr!(
+            format!("Accès refusé pour : {}. Relance PortDoctor en administrateur.", failed.join(", ")),
+            format!("Access denied for: {}. Relaunch PortDoctor as administrator.", failed.join(", "))
         ))
     }
 }
@@ -386,18 +386,18 @@ pub fn kill_tree(pid: u32, own_pid: u32, include_parents: bool) -> Result<bool, 
 /// Contrôles avant un arrêt : fonction pure, testée sans toucher à un processus.
 pub fn guard_kill(pid: u32, own_pid: u32, entries: &[PortEntry]) -> Result<&PortEntry, String> {
     if pid == own_pid {
-        return Err("PortDoctor ne peut pas se terminer lui-même ici.".into());
+        return Err(tr!("PortDoctor ne peut pas se terminer lui-même ici.", "PortDoctor cannot stop itself.").into());
     }
     // Le PID doit détenir un port MAINTENANT : évite de tuer un processus qui a réutilisé
     // un PID après le dernier scan affiché.
     let entry = entries
         .iter()
         .find(|e| e.pid == pid)
-        .ok_or_else(|| format!("Le PID {pid} ne détient plus aucun port : rafraîchis la liste."))?;
+        .ok_or_else(|| tr!(format!("Le PID {pid} ne détient plus aucun port : rafraîchis la liste."), format!("PID {pid} no longer holds any port: refresh the list.")))?;
     if entry.protected {
-        return Err(format!(
-            "{} (PID {pid}) est un processus système protégé : arrêt refusé.",
-            entry.process_name
+        return Err(tr!(
+            format!("{} (PID {pid}) est un processus système protégé : arrêt refusé.", entry.process_name),
+            format!("{} (PID {pid}) is a protected system process: stop refused.", entry.process_name)
         ));
     }
     Ok(entry)
@@ -411,15 +411,16 @@ pub fn kill_listener(pid: u32, own_pid: u32) -> Result<KillOutcome, String> {
     let sys = fresh_system();
     let process = sys
         .process(Pid::from_u32(pid))
-        .ok_or_else(|| format!("{name} (PID {pid}) s'est déjà arrêté."))?;
+        .ok_or_else(|| tr!(format!("{name} (PID {pid}) s'est déjà arrêté."), format!("{name} (PID {pid}) has already stopped.")))?;
     if process.kill() {
         Ok(KillOutcome {
             pid,
             process_name: name,
         })
     } else {
-        Err(format!(
-            "Accès refusé pour {name} (PID {pid}) : processus lancé en administrateur ? Relance PortDoctor en administrateur."
+        Err(tr!(
+            format!("Accès refusé pour {name} (PID {pid}) : processus lancé en administrateur ? Relance PortDoctor en administrateur."),
+            format!("Access denied for {name} (PID {pid}): process started as administrator? Relaunch PortDoctor as administrator.")
         ))
     }
 }
@@ -461,9 +462,9 @@ pub fn excluded_ranges() -> Result<Vec<ExcludedRange>, String> {
         ])
         .creation_flags(CREATE_NO_WINDOW)
         .output()
-        .map_err(|e| format!("netsh indisponible : {e}"))?;
+        .map_err(|e| tr!(format!("netsh indisponible : {e}"), format!("netsh unavailable: {e}")))?;
     if !out.status.success() {
-        return Err("netsh a échoué : plages exclues non disponibles.".into());
+        return Err(tr!("netsh a échoué : plages exclues non disponibles.", "netsh failed: excluded ranges unavailable.").into());
     }
     Ok(parse_excluded(&String::from_utf8_lossy(&out.stdout)))
 }
@@ -479,7 +480,11 @@ pub fn own_memory(own_pid: u32) -> u64 {
 mod tests {
     use super::*;
     use std::net::TcpListener;
+    use std::sync::Mutex;
     use std::time::{Duration, Instant};
+
+    /// La langue est globale : les tests qui lisent un message la figent le temps du test.
+    static LANG_LOCK: Mutex<()> = Mutex::new(());
 
     fn entry(pid: u32, name: &str) -> PortEntry {
         PortEntry {
@@ -526,6 +531,8 @@ mod tests {
 
     #[test]
     fn guard_rejects_self_unknown_and_protected() {
+        let _l = LANG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        crate::i18n::set_english(false);
         let list = vec![entry(100, "node.exe"), entry(4, "System")];
         assert!(guard_kill(100, 100, &list).is_err()); // soi-même
         assert!(guard_kill(555, 1, &list).is_err()); // PID sans port
@@ -596,6 +603,8 @@ mod tests {
 
     #[test]
     fn tree_refuses_protected_target_or_descendant() {
+        let _l = LANG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        crate::i18n::set_english(false);
         let procs = vec![
             pi(1, None, "explorer.exe", ""),
             pi(30, Some(1), "node.exe", "node"),
@@ -604,6 +613,21 @@ mod tests {
         assert!(plan_tree(&procs, 30, 99, false).unwrap_err().contains("protégé"));
         assert!(plan_tree(&[pi(900, None, "lsass.exe", "")], 900, 99, true).is_err());
         assert!(plan_tree(&procs, 777, 99, true).is_err()); // PID inconnu
+    }
+
+    #[test]
+    fn messages_follow_the_selected_language() {
+        let _l = LANG_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let list = vec![entry(4, "System")];
+        crate::i18n::set_english(true);
+        let en = guard_kill(4, 1, &list).unwrap_err();
+        let en_missing = guard_kill(555, 1, &list).unwrap_err();
+        crate::i18n::set_english(false);
+        let fr = guard_kill(4, 1, &list).unwrap_err();
+        assert!(en.contains("protected system process"), "{en}");
+        assert!(en_missing.contains("no longer holds any port"), "{en_missing}");
+        assert!(fr.contains("processus système protégé"), "{fr}");
+        assert_ne!(en, fr);
     }
 
     #[test]
