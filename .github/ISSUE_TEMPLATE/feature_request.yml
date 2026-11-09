@@ -1,0 +1,42 @@
+name: Feature request / Proposer une fonctionnalité
+description: Une idée pour améliorer PortDoctor.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème à résoudre
+      description: Quelle situation concrète te pose problème aujourd'hui ?
+      placeholder: "Mon serveur de dev lance 3 processus et je dois ..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Comment imagines-tu que ça fonctionne (interface, comportement) ?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+      description: Contournements actuels (`netstat`, `taskkill`…), autres outils.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Concerne
+      options:
+        - Liste et filtres
+        - Kill / Smart Kill
+        - WSL2 / Docker
+        - Hyper-V / plages exclues
+        - System Tray
+        - Autre
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Sécurité
+      options:
+        - label: Je comprends que PortDoctor doit continuer à protéger les processus système et à demander une confirmation avant tout arrêt.
