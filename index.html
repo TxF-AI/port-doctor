@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PortDoctor</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand"><span class="led" id="led"></span>PortDoctor <small>v0.1.0</small></div>
+        <input id="filter" type="search" placeholder="Filtrer port / processus…  (Ctrl+F)" autocomplete="off" spellcheck="false" />
+        <label class="chk"><input id="devOnly" type="checkbox" /> Dev ports</label>
+        <button id="refresh" class="btn" title="Rafraîchir (F5)">Rafraîchir</button>
+      </header>
+
+      <section class="stats" id="stats"></section>
+      <div id="banner" class="banner" hidden></div>
+
+      <main class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-k="port">Port</th>
+              <th data-k="proto">Proto</th>
+              <th data-k="process_name">Processus</th>
+              <th data-k="pid" class="num">PID</th>
+              <th data-k="memory_bytes" class="num">Mémoire</th>
+              <th data-k="source">Source</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <p id="empty" class="empty" hidden>Aucun port ne correspond.</p>
+      </main>
+
+      <footer class="foot"><span id="status">…</span></footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
