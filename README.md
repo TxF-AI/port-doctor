@@ -1,4 +1,4 @@
-# PortDoctor (v0.1.0)
+# PortDoctor (v0.2.0)
 
 🇫🇷 [Version française](README.fr.md)
 
@@ -55,7 +55,7 @@ When a process has children or an `npm` / `yarn` launcher above it, the **Kill**
 
 ## Installation
 
-1. Download **[port-doctor.exe (v0.1.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.1.0/port-doctor.exe)** from the [release page](https://github.com/TxF-AI/port-doctor/releases/tag/v0.1.0).
+1. Download **[port-doctor.exe (v0.2.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.2.0/port-doctor.exe)** from the [release page](https://github.com/TxF-AI/port-doctor/releases/tag/v0.2.0).
 2. Check its hash:
 
    ```powershell
@@ -65,7 +65,7 @@ When a process has children or an `npm` / `yarn` launcher above it, the **Kill**
    The result must be:
 
    ```
-   1D541C84B0D1A551EA1D148A23CCEAA27BDE7AB382F66869A30D26DF19972C30
+   10D94C24A98346F67D735F604C12CDAAA264081E64041D86F494B6704CB4936E
    ```
 
 3. Double-click `port-doctor.exe`. No installation: the file is portable. The icon appears in the notification area (left click to show, right click to quit).

@@ -3,7 +3,7 @@
 ## Vue d'ensemble
 - **Projet :** PortDoctor (libère les ports bloqués, erreur `EADDRINUSE`, inspecte WSL2/Docker et les plages de ports exclues par Hyper-V). Utilitaire léger dans la zone de notification (System Tray) de Windows.
 - **Stack :** Rust (backend) + Tauri v2 (tray) + Vite + JavaScript vanilla + Tailwind CSS v4. Thème « HUD cyberpunk » repris de DevEnv Doctor (`--bg #090a0f`, accents réservés aux statuts).
-- **Version courante :** v0.1.0 (dépôt local, non publié). La version vient de `src-tauri/tauri.conf.json` : la garder égale à `Cargo.toml` et `package.json`.
+- **Version courante :** v0.2.0 (publiée sur GitHub). La version vient de `src-tauri/tauri.conf.json` : la garder égale à `Cargo.toml`, `package.json`, `package-lock.json`, `Cargo.lock` et `index.html`.
 - **Règles produit :** lecture seule par défaut ; seule écriture = arrêt d'un processus, toujours après confirmation visuelle ; processus système protégés ; rien n'est envoyé sur Internet.
 
 ## Commandes clés
@@ -18,7 +18,7 @@ Gestionnaire de paquets : **npm**. Dans un shell déjà ouvert : `$env:Path += "
 - Front : JS vanilla volontaire (exe ~4 Mo, zéro dépendance), découpé en modules ES : `state.js` (état, utilitaires, `visible()`), `render.js` (tableau, stats, bannière, statut), `kill.js` (Kill en 2 temps), `tree-dialog.js` (modale Smart Kill), `i18n.js`, `main.js` (init, refresh, langue). `refresh` est injecté dans `initKill`/`initTreeDialog` (pas d'import circulaire). Pas de framework : ne pas en ajouter sans raison.
 - README : `README.md` = anglais (défaut GitHub), `README.fr.md` = français ; médias EN dans `assets/*.gif|png`, FR dans `assets/*.fr.*`.
 - Smart Kill : parents arrêtés seulement si lanceurs (`npm`/`yarn`/`pnpm`/`nodemon`, ou `node`/`cmd` dont la ligne de commande les cite) ; jamais PortDoctor ni ses ancêtres ; un processus protégé dans l'arbre = refus total.
-- Publication : `gh repo create TxF-AI/port-doctor --public`, tag annoté `v0.1.0`, `gh release create v0.1.0 <exe> --verify-tag --notes-file <fichier>` avec SHA-256.
+- Publication : `gh repo create TxF-AI/port-doctor --public`, tag annoté `v0.2.0`, `gh release create v0.2.0 <exe> --verify-tag --notes-file <fichier>` avec SHA-256.
 
 ## Conventions Git
 - Commits conventionnels (`feat:`, `fix:`, `docs:`, `refactor:`), en français.

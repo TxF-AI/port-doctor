@@ -1,4 +1,4 @@
-# PortDoctor (v0.1.0)
+# PortDoctor (v0.2.0)
 
 🇬🇧 [English version](README.md)
 
@@ -55,7 +55,7 @@ Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bout
 
 ## Installation
 
-1. Télécharge **[port-doctor.exe (v0.1.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.1.0/port-doctor.exe)** depuis la [page de la Release](https://github.com/TxF-AI/port-doctor/releases/tag/v0.1.0).
+1. Télécharge **[port-doctor.exe (v0.2.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.2.0/port-doctor.exe)** depuis la [page de la Release](https://github.com/TxF-AI/port-doctor/releases/tag/v0.2.0).
 2. Vérifie son empreinte :
 
    ```powershell
@@ -65,7 +65,7 @@ Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bout
    Le résultat doit être :
 
    ```
-   1D541C84B0D1A551EA1D148A23CCEAA27BDE7AB382F66869A30D26DF19972C30
+   10D94C24A98346F67D735F604C12CDAAA264081E64041D86F494B6704CB4936E
    ```
 
 3. Double-clique sur `port-doctor.exe`. Aucune installation : le fichier est portable. L'icône apparaît dans la zone de notification (clic gauche pour afficher, clic droit pour quitter).
