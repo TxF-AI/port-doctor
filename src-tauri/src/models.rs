@@ -49,3 +49,15 @@ pub struct KillOutcome {
     pub pid: u32,
     pub process_name: String,
 }
+
+/// Alerte du Port Shield : un port surveillé a changé d'occupant ou a été libéré.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ShieldAlert {
+    pub port: u16,
+    /// "taken" (un autre processus tient le port) ou "free" (plus personne ne l'occupe).
+    pub kind: &'static str,
+    /// Nom du processus attendu sur ce port.
+    pub expected: String,
+    pub pid: Option<u32>,
+    pub process_name: Option<String>,
+}

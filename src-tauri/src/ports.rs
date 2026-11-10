@@ -51,6 +51,30 @@ pub fn classify_source(process_name: &str) -> &'static str {
     }
 }
 
+/// État d'un port surveillé par le Port Shield.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ShieldState {
+    /// Le processus attendu tient le port.
+    Ok,
+    /// Plus personne n'occupe le port.
+    Free,
+    /// Un autre processus tient le port.
+    Taken { pid: u32, name: String },
+}
+
+/// Compare les occupants d'un port surveillé au processus attendu. On compare le NOM du processus
+/// (sans tenir compte de la casse) : relancer le même serveur change de PID mais pas de nom.
+pub fn shield_check(expected: &str, holders: &[(u32, String)]) -> ShieldState {
+    if holders.is_empty() {
+        ShieldState::Free
+    } else if holders.iter().any(|(_, n)| n.eq_ignore_ascii_case(expected)) {
+        ShieldState::Ok
+    } else {
+        let (pid, name) = &holders[0];
+        ShieldState::Taken { pid: *pid, name: name.clone() }
+    }
+}
+
 /// Famille d'un processus pour la Vue Simple, déduite de son nom et de sa ligne de commande.
 /// `cmd` doit déjà être en minuscules. Sert uniquement à l'affichage : aucune décision de Kill n'en dépend.
 pub fn classify_kind(name: &str, cmd: &str, source: &str, protected: bool) -> &'static str {
@@ -565,6 +589,20 @@ mod tests {
         assert_eq!(classify_source("com.docker.backend.exe"), "Docker");
         assert_eq!(classify_source("docker-proxy.exe"), "Docker");
         assert_eq!(classify_source("node.exe"), "Host");
+    }
+
+    #[test]
+    fn shield_detects_takeover_and_release() {
+        let node = vec![(10, "node.exe".to_string())];
+        assert_eq!(shield_check("node.exe", &node), ShieldState::Ok);
+        assert_eq!(shield_check("NODE.EXE", &node), ShieldState::Ok);
+        // même serveur relancé : autre PID, même nom
+        assert_eq!(shield_check("node.exe", &[(99, "node.exe".to_string())]), ShieldState::Ok);
+        assert_eq!(shield_check("node.exe", &[]), ShieldState::Free);
+        assert_eq!(
+            shield_check("node.exe", &[(7, "python.exe".to_string())]),
+            ShieldState::Taken { pid: 7, name: "python.exe".to_string() }
+        );
     }
 
     #[test]

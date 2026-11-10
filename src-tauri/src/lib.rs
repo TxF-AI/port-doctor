@@ -3,10 +3,15 @@ mod i18n;
 mod models;
 mod ports;
 
-use models::{ExcludedRange, KillOutcome, PortEntry, TreeMember};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use std::time::Duration;
+
+use models::{ExcludedRange, KillOutcome, PortEntry, ShieldAlert, TreeMember};
+use ports::ShieldState;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 
 /// Ports TCP en écoute et sockets UDP liés, avec processus, mémoire et provenance.
 #[tauri::command]
@@ -43,6 +48,72 @@ async fn get_excluded_ranges() -> Result<Vec<ExcludedRange>, String> {
 #[tauri::command]
 async fn get_backend_memory() -> u64 {
     ports::own_memory(std::process::id())
+}
+
+/// Un port surveillé par le Port Shield et le nom du processus qui devrait le tenir.
+#[derive(serde::Deserialize, Clone)]
+struct ShieldEntry {
+    port: u16,
+    name: String,
+}
+
+/// Liste des ports surveillés, partagée avec le thread de surveillance.
+#[derive(Default)]
+struct ShieldWatch {
+    entries: Mutex<Vec<ShieldEntry>>,
+}
+
+/// Remplace la liste des ports surveillés (l'interface la garde et la renvoie à chaque changement).
+#[tauri::command]
+fn set_shield(watch: State<ShieldWatch>, entries: Vec<ShieldEntry>) {
+    if let Ok(mut e) = watch.entries.lock() {
+        *e = entries;
+    }
+}
+
+/// Surveille les ports du Shield toutes les 2 s (seulement s'il y en a). Alerte uniquement : aucun arrêt automatique.
+/// La première observation d'un port est silencieuse ; ensuite on n'alerte qu'au changement d'état.
+fn spawn_shield_watcher(app: AppHandle) {
+    std::thread::spawn(move || {
+        let mut last: HashMap<u16, ShieldState> = HashMap::new();
+        loop {
+            std::thread::sleep(Duration::from_secs(2));
+            let entries = match app.state::<ShieldWatch>().entries.lock() {
+                Ok(e) => e.clone(),
+                Err(_) => continue,
+            };
+            last.retain(|p, _| entries.iter().any(|e| e.port == *p));
+            if entries.is_empty() {
+                continue;
+            }
+            let Ok(ports) = ports::scan() else { continue };
+            for e in &entries {
+                let holders: Vec<(u32, String)> = ports
+                    .iter()
+                    .filter(|p| p.proto == "TCP" && p.port == e.port)
+                    .map(|p| (p.pid, p.process_name.clone()))
+                    .collect();
+                let now = ports::shield_check(&e.name, &holders);
+                let previous = last.insert(e.port, now.clone());
+                if previous.is_none() || previous.as_ref() == Some(&now) {
+                    continue;
+                }
+                let alert = match now {
+                    ShieldState::Ok => continue,
+                    ShieldState::Free => ShieldAlert { port: e.port, kind: "free", expected: e.name.clone(), pid: None, process_name: None },
+                    ShieldState::Taken { pid, name } => ShieldAlert { port: e.port, kind: "taken", expected: e.name.clone(), pid: Some(pid), process_name: Some(name) },
+                };
+                let _ = app.emit("shield-alert", alert);
+                // Fenêtre masquée (tray) : on la montre ; sinon on fait clignoter la barre des tâches.
+                match app.get_webview_window("main") {
+                    Some(w) if w.is_visible().unwrap_or(true) => {
+                        let _ = w.request_user_attention(Some(tauri::UserAttentionType::Informational));
+                    }
+                    _ => show_main_window(&app),
+                }
+            }
+        }
+    });
 }
 
 /// Éléments du menu du tray, gardés pour pouvoir changer leur texte quand la langue change.
@@ -116,8 +187,10 @@ fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(ShieldWatch::default())
         .setup(|app| {
             setup_tray(app.handle())?;
+            spawn_shield_watcher(app.handle().clone());
             Ok(())
         })
         // Fermer la fenêtre la masque : l'app reste dans la zone de notification.
@@ -134,7 +207,8 @@ pub fn run() {
             preview_kill_tree,
             get_excluded_ranges,
             get_backend_memory,
-            set_language
+            set_language,
+            set_shield
         ])
         .run(tauri::generate_context!())
         .expect("erreur au lancement de PortDoctor");

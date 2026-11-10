@@ -102,5 +102,11 @@ tr.leaving > td { opacity: 0; transition: opacity .26s ease; }
 #toasts { position: fixed; right: 14px; bottom: 40px; display: flex; flex-direction: column; gap: 8px; z-index: 50; pointer-events: none; }
 .toast { background: var(--surface); border: 1px solid var(--ok); color: var(--text); border-radius: 4px; padding: 8px 14px; max-width: 360px; box-shadow: 0 4px 18px rgba(0, 0, 0, .5); animation: toast-in .2s ease-out; transition: opacity .35s, transform .35s; }
 .toast.err { border-color: var(--bad); }
+.toast.warn { border-color: var(--warn); }
+
+/* Port Shield : bouton discret, allumé quand le port est surveillé. */
+.shield { background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; margin-right: 6px; font-size: 13px; line-height: 1.4; cursor: pointer; filter: grayscale(1); opacity: .55; }
+.shield:hover { opacity: 1; border-color: var(--info); }
+.shield.on { filter: none; opacity: 1; border-color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .toast.out { opacity: 0; transform: translateY(8px); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }

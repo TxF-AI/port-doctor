@@ -8,6 +8,13 @@ function loadSimple() {
   try { return localStorage.getItem("view") === "simple"; } catch { return false; }
 }
 
+function loadShield() {
+  try {
+    const v = JSON.parse(localStorage.getItem("shield") ?? "{}");
+    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch { return {}; }
+}
+
 export const state = {
   ports: [],
   ranges: [],
@@ -19,6 +26,7 @@ export const state = {
   backendMem: 0,
   busy: false,
   simple: loadSimple(), // Vue Simple (sans PID ni détails techniques) ou Vue Avancée
+  shield: loadShield(), // Port Shield : { [port]: nom du processus attendu }
   // Statut du pied de page, gardé sous forme de données pour être retraduit au changement de langue.
   status: { kind: "none" },
 };

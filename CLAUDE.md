@@ -3,7 +3,7 @@
 ## Vue d'ensemble
 - **Projet :** PortDoctor (libère les ports bloqués, erreur `EADDRINUSE`, inspecte WSL2/Docker et les plages de ports exclues par Hyper-V). Utilitaire léger dans la zone de notification (System Tray) de Windows.
 - **Stack :** Rust (backend) + Tauri v2 (tray) + Vite + JavaScript vanilla + Tailwind CSS v4. Thème « HUD cyberpunk » repris de DevEnv Doctor (`--bg #090a0f`, accents réservés aux statuts).
-- **Version courante :** v0.3.0 (publiée sur GitHub). La version vient de `src-tauri/tauri.conf.json` : la garder égale à `Cargo.toml`, `package.json`, `package-lock.json`, `Cargo.lock` et `index.html`.
+- **Version courante :** v0.4.0 (publiée sur GitHub). La version vient de `src-tauri/tauri.conf.json` : la garder égale à `Cargo.toml`, `package.json`, `package-lock.json`, `Cargo.lock` et `index.html`.
 - **Règles produit :** lecture seule par défaut ; seule écriture = arrêt d'un processus, toujours après confirmation visuelle ; processus système protégés ; rien n'est envoyé sur Internet.
 
 ## Commandes clés
@@ -15,7 +15,7 @@ Gestionnaire de paquets : **npm**. Dans un shell déjà ouvert : `$env:Path += "
 - Exécutable : `npm run tauri build -- --no-bundle` → `src-tauri\target\release\port-doctor.exe`
 - Backend : `src-tauri/src/models.rs` (types), `ports.rs` (scan, classification, garde-fous, Smart Kill `plan_tree`/`kill_tree`, distros WSL2, Hyper-V), `lib.rs` (commandes `get_active_ports`, `kill_port_process`, `kill_process_tree`, `preview_kill_tree`, `get_excluded_ranges`, `get_backend_memory`, tray).
 - Langues (FR/EN) : src/i18n.js (dictionnaires, 	()), sélecteur #lang, persistance localStorage, commande set_language (backend : i18n.rs, macro 	r!(fr, en), menu du tray mis à jour). Tout nouveau texte visible = une clé dans les deux langues ; tout message d'erreur Rust = 	r!. Les tests qui lisent un message prennent LANG_LOCK.
-- Front : JS vanilla volontaire (exe ~4 Mo, zéro dépendance), découpé en modules ES : `toast.js` (notifications), `state.js` (état, utilitaires, `visible()`), `render.js` (tableau, stats, bannière, statut), `kill.js` (Kill en 2 temps), `tree-dialog.js` (modale Smart Kill), `i18n.js`, `main.js` (init, refresh, langue). `refresh` est injecté dans `initKill`/`initTreeDialog` (pas d'import circulaire). Pas de framework : ne pas en ajouter sans raison.
+- Front : JS vanilla volontaire (exe ~4 Mo, zéro dépendance), découpé en modules ES : `shield.js` (Port Shield : surveillance de ports, alerte seule, jamais d'arrêt automatique ; thread Rust `spawn_shield_watcher`), `toast.js` (notifications), `state.js` (état, utilitaires, `visible()`), `render.js` (tableau, stats, bannière, statut), `kill.js` (Kill en 2 temps), `tree-dialog.js` (modale Smart Kill), `i18n.js`, `main.js` (init, refresh, langue). `refresh` est injecté dans `initKill`/`initTreeDialog` (pas d'import circulaire). Pas de framework : ne pas en ajouter sans raison.
 - README : `README.md` = anglais (défaut GitHub), `README.fr.md` = français ; médias EN dans `assets/*.gif|png`, FR dans `assets/*.fr.*`.
 - Smart Kill : parents arrêtés seulement si lanceurs (`npm`/`yarn`/`pnpm`/`nodemon`, ou `node`/`cmd` dont la ligne de commande les cite) ; jamais PortDoctor ni ses ancêtres ; un processus protégé dans l'arbre = refus total.
 - Publication : `gh repo create TxF-AI/port-doctor --public`, tag annoté `v0.2.0`, `gh release create v0.2.0 <exe> --verify-tag --notes-file <fichier>` avec SHA-256.

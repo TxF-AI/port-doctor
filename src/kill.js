@@ -4,6 +4,7 @@ import { t } from "./i18n.js";
 import { renderRows, renderStatus, fadeOutRow } from "./render.js";
 import { openTree } from "./tree-dialog.js";
 import { toast } from "./toast.js";
+import { unshield } from "./shield.js";
 
 async function onKill(btn, refresh) {
   const key = btn.dataset.key;
@@ -31,6 +32,7 @@ async function onKill(btn, refresh) {
   try {
     const r = await invoke("kill_port_process", { pid });
     status = { kind: "good", text: (tr) => tr("killed", { name: r.process_name, pid: r.pid }) };
+    unshield(btn.dataset.port);
     toast(t("toast_freed", { port: btn.dataset.port, name: r.process_name }));
     await fadeOutRow(pid);
   } catch (e) {

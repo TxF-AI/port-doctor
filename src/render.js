@@ -30,6 +30,10 @@ export function renderRows() {
       const btn = p.protected
         ? `<button class="kill" disabled title="${esc(t("protected_title"))}">${esc(t("protected"))}</button>`
         : `<button class="kill${armed ? " armed" : ""}" data-key="${esc(key)}" data-pid="${p.pid}" data-port="${p.port}">${esc(armed ? t("confirm") : t(state.simple ? "free_port" : "kill"))}</button>`;
+      const on = state.shield[p.port] !== undefined;
+      const shield = p.protected || p.proto !== "TCP"
+        ? ""
+        : `<button class="shield${on ? " on" : ""}" data-port="${p.port}" data-name="${esc(p.process_name)}" aria-pressed="${on}" title="${esc(t(on ? "shield_on_title" : "shield_off_title"))}">🛡</button>`;
       // Vue Simple : un libellé clair à la place du nom de l'exécutable (celui-ci reste dans l'infobulle).
       const what = state.simple ? esc(t(`kind_${p.kind}`)) : esc(p.process_name);
       const hover = `${p.process_name}${state.simple ? ` (PID ${p.pid})` : ""}\n${p.exe_path ?? ""}\n${p.addresses.join(", ")}`;
@@ -40,7 +44,7 @@ export function renderRows() {
         <td class="num adv">${p.pid}</td>
         <td class="num adv">${fmtMem(p.memory_bytes)}</td>
         <td class="adv">${esc(p.source)}</td>
-        <td>${btn}</td></tr>`;
+        <td>${shield}${btn}</td></tr>`;
     })
     .join("");
   document.querySelectorAll("thead th[data-k]").forEach((th) => th.classList.toggle("sorted", th.dataset.k === state.sort.key));

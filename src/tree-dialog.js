@@ -3,6 +3,7 @@ import { t } from "./i18n.js";
 import { state, $, esc, invoke } from "./state.js";
 import { renderStatus, fadeOutRow } from "./render.js";
 import { toast } from "./toast.js";
+import { unshield } from "./shield.js";
 
 const dlg = $("treeDlg");
 let treePlan = null; // { pid, members }
@@ -41,6 +42,7 @@ export function initTreeDialog(refresh) {
     try {
       await invoke("kill_process_tree", { pid, includeParents: withParents });
       status = { kind: "good", text: (tr) => tr("tree_killed", { pid }) };
+      unshield(port);
       toast(t("toast_tree_freed", { port }));
       await fadeOutRow(pid);
     } catch (e) {

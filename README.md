@@ -1,4 +1,4 @@
-# PortDoctor (v0.3.0)
+# PortDoctor (v0.4.0)
 
 🇫🇷 [Version française](README.fr.md)
 
@@ -59,6 +59,7 @@ When a process has children or an `npm` / `yarn` launcher above it, the **Kill**
 | 💥 **One-click Kill** | Forced stop of the process holding the port, after a visual confirmation ("Confirmer ?" on the button). |
 | 🌳 **Smart Kill (tree)** | If the process has children or an `npm` / `yarn` / `pnpm` / `nodemon` launcher above it, a modal lists the exact tree (parents, port owner, children) before stopping. Parents are an opt-in checkbox. |
 | 🛡️ **Guardrails** | `System`, `svchost.exe`, `lsass.exe`, `csrss.exe`, `services.exe`… are locked, in the backend too. A tree containing a protected process is refused as a whole. PortDoctor never stops itself or its ancestors, and an ordinary shell or terminal is never mistaken for a launcher. |
+| 🛡️ **Port Shield** | Click the shield next to a port to watch it. If another process takes it, or the one you expected lets go of it, PortDoctor shows a warning toast, flashes the taskbar and brings the window back from the tray. Alert only: nothing is ever stopped automatically. The expected process is matched by name, so restarting the same server does not trigger a false alarm. Checked every 2 seconds, and only when at least one port is shielded. |
 | 👁️ **Simple view** | A toggle that hides PIDs and technical columns and names what holds the port in plain words ("Dev web server (Vite, React…)", "Python app", "Database", "Docker container"). One big **Free port** button. Remembered between launches; the Advanced view keeps every detail. |
 | 🌐 **Languages** | Interface and backend messages in French or English, your choice (remembered). The tray menu follows the language. |
 | 🐧 **WSL2 mapping** | Ports relayed by `wslrelay.exe` are labelled with the running distribution: `WSL2 (Ubuntu)`. Container ports are marked `Docker`. |
@@ -66,7 +67,7 @@ When a process has children or an `npm` / `yarn` launcher above it, the **Kill**
 
 ## Installation
 
-1. Download **[port-doctor.exe (v0.3.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.3.0/port-doctor.exe)** from the [release page](https://github.com/TxF-AI/port-doctor/releases/tag/v0.3.0).
+1. Download **[port-doctor.exe (v0.4.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.4.0/port-doctor.exe)** from the [release page](https://github.com/TxF-AI/port-doctor/releases/tag/v0.4.0).
 2. Check its hash:
 
    ```powershell
@@ -76,7 +77,7 @@ When a process has children or an `npm` / `yarn` launcher above it, the **Kill**
    The result must be:
 
    ```
-   2D5452BD89CA73946A540292BE182B31C2D80BBACE14AE35DF303854876B78FC
+   7964BBA164FFC347F7E3F5CB914875CD397ECC686ADB77265D407CA5C5F5E3A3
    ```
 
 3. Double-click `port-doctor.exe`. No installation: the file is portable. The icon appears in the notification area (left click to show, right click to quit).
@@ -111,7 +112,7 @@ npm run tauri build -- --no-bundle         # executable: src-tauri\target\releas
 | `src-tauri/src/ports.rs` | socket scan, guardrails, Smart Kill, WSL2, Hyper-V ranges |
 | `src-tauri/src/models.rs` | types exchanged with the interface |
 | `src-tauri/src/lib.rs` | Tauri commands and system tray |
-| `src/` | interface in plain JavaScript modules, no framework on purpose (keeps the app tiny): `state.js` (shared state), `render.js` (table, counters, Simple view), `toast.js` (notifications), `kill.js` and `tree-dialog.js` (Kill and Smart Kill), `i18n.js` (FR/EN), `main.js` (entry point) |
+| `src/` | interface in plain JavaScript modules, no framework on purpose (keeps the app tiny): `state.js` (shared state), `render.js` (table, counters, Simple view), `toast.js` (notifications), `shield.js` (Port Shield), `kill.js` and `tree-dialog.js` (Kill and Smart Kill), `i18n.js` (FR/EN), `main.js` (entry point) |
 | `index.html` | page skeleton (Vite, Tailwind v4) |
 | `CHANGELOG.md` | what changed in each version, with dates |
 | `CLAUDE.md` | project memory: commands, conventions, lessons learned (in French) |
