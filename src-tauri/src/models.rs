@@ -16,6 +16,9 @@ pub struct PortEntry {
     /// "Host", "WSL2" ou "Docker" (déduit du nom du processus qui porte le port).
     pub source: String,
     pub is_dev_port: bool,
+    /// Famille du processus pour la Vue Simple : "frontend", "node", "python", "java", "dotnet",
+    /// "database", "docker", "wsl", "system" ou "other" (le texte affiché vient de l'interface).
+    pub kind: &'static str,
     /// Processus système : le bouton Kill est refusé par le backend.
     pub protected: bool,
     pub parent_pid: Option<u32>,

@@ -29,18 +29,29 @@ export function renderRows() {
         (tree ? `<span class="tag" title="${esc(t("tag_parent", { name: p.parent_name, pid: p.parent_pid }))}">via ${esc(p.parent_name)}</span>` : "");
       const btn = p.protected
         ? `<button class="kill" disabled title="${esc(t("protected_title"))}">${esc(t("protected"))}</button>`
-        : `<button class="kill${armed ? " armed" : ""}" data-key="${esc(key)}" data-pid="${p.pid}">${esc(armed ? t("confirm") : t("kill"))}</button>`;
-      return `<tr class="${p.is_dev_port ? "dev" : ""}${ex ? " conflict" : ""}">
+        : `<button class="kill${armed ? " armed" : ""}" data-key="${esc(key)}" data-pid="${p.pid}" data-port="${p.port}">${esc(armed ? t("confirm") : t(state.simple ? "free_port" : "kill"))}</button>`;
+      // Vue Simple : un libellé clair à la place du nom de l'exécutable (celui-ci reste dans l'infobulle).
+      const what = state.simple ? esc(t(`kind_${p.kind}`)) : esc(p.process_name);
+      const hover = `${p.process_name}${state.simple ? ` (PID ${p.pid})` : ""}\n${p.exe_path ?? ""}\n${p.addresses.join(", ")}`;
+      return `<tr data-pid="${p.pid}" class="${p.is_dev_port ? "dev" : ""}${ex ? " conflict" : ""}">
         <td class="port">${p.port}</td>
-        <td>${esc(p.proto)}</td>
-        <td title="${esc(p.exe_path ?? "")}&#10;${esc(p.addresses.join(", "))}">${esc(p.process_name)}${tags}</td>
-        <td class="num">${p.pid}</td>
-        <td class="num">${fmtMem(p.memory_bytes)}</td>
-        <td>${esc(p.source)}</td>
+        <td class="adv">${esc(p.proto)}</td>
+        <td title="${esc(hover)}">${what}${tags}</td>
+        <td class="num adv">${p.pid}</td>
+        <td class="num adv">${fmtMem(p.memory_bytes)}</td>
+        <td class="adv">${esc(p.source)}</td>
         <td>${btn}</td></tr>`;
     })
     .join("");
   document.querySelectorAll("thead th[data-k]").forEach((th) => th.classList.toggle("sorted", th.dataset.k === state.sort.key));
+}
+
+/** Fait disparaître en fondu la ligne d'un processus qu'on vient d'arrêter, avant le rafraîchissement. */
+export function fadeOutRow(pid) {
+  const rows = $("rows").querySelectorAll(`tr[data-pid="${pid}"]`);
+  if (!rows.length) return Promise.resolve();
+  rows.forEach((r) => r.classList.add("leaving"));
+  return new Promise((done) => setTimeout(done, 280));
 }
 
 export function renderStatus() {

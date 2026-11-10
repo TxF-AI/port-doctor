@@ -85,3 +85,22 @@ dialog h2 { margin: 0 0 8px; font-size: 15px; }
 .foot { padding: 6px 14px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; }
 .foot .err { color: var(--bad); }
 .foot .good { color: var(--ok); }
+
+/* Vue Simple : on cache le bruit technique, on grossit port et bouton. */
+.simple-only { display: none; }
+body.simple .adv { display: none; }
+body.simple .simple-only { display: inline; }
+body.simple td.port { font-size: 16px; }
+body.simple tbody td { padding: 10px 12px; }
+body.simple .kill { padding: 6px 14px; min-width: 110px; font-weight: 700; }
+
+/* Une ligne qu'on vient d'arrêter s'efface en fondu avant le rafraîchissement. */
+tr.leaving { transform: translateX(24px); transition: transform .26s ease; }
+tr.leaving > td { opacity: 0; transition: opacity .26s ease; }
+
+/* Notifications discrètes en bas à droite. */
+#toasts { position: fixed; right: 14px; bottom: 40px; display: flex; flex-direction: column; gap: 8px; z-index: 50; pointer-events: none; }
+.toast { background: var(--surface); border: 1px solid var(--ok); color: var(--text); border-radius: 4px; padding: 8px 14px; max-width: 360px; box-shadow: 0 4px 18px rgba(0, 0, 0, .5); animation: toast-in .2s ease-out; transition: opacity .35s, transform .35s; }
+.toast.err { border-color: var(--bad); }
+.toast.out { opacity: 0; transform: translateY(8px); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }

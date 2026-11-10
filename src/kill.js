@@ -1,7 +1,9 @@
 // Bouton Kill : confirmation en deux temps, ou Smart Kill si le processus a un arbre.
 import { state, $, invoke, disarm } from "./state.js";
-import { renderRows, renderStatus } from "./render.js";
+import { t } from "./i18n.js";
+import { renderRows, renderStatus, fadeOutRow } from "./render.js";
 import { openTree } from "./tree-dialog.js";
+import { toast } from "./toast.js";
 
 async function onKill(btn, refresh) {
   const key = btn.dataset.key;
@@ -11,7 +13,7 @@ async function onKill(btn, refresh) {
       const members = await invoke("preview_kill_tree", { pid: Number(btn.dataset.pid) });
       if (members.length > 1) {
         disarm();
-        return openTree(Number(btn.dataset.pid), members);
+        return openTree(Number(btn.dataset.pid), members, btn.dataset.port);
       }
     } catch (e) {
       state.status = { kind: "err", text: String(e) };
@@ -29,8 +31,11 @@ async function onKill(btn, refresh) {
   try {
     const r = await invoke("kill_port_process", { pid });
     status = { kind: "good", text: (tr) => tr("killed", { name: r.process_name, pid: r.pid }) };
+    toast(t("toast_freed", { port: btn.dataset.port, name: r.process_name }));
+    await fadeOutRow(pid);
   } catch (e) {
     status = { kind: "err", text: String(e) };
+    toast(String(e), "err");
   }
   await refresh();
   state.status = status;

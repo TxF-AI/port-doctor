@@ -1,7 +1,8 @@
 // Smart Kill : modale listant l'arbre parent/enfant avant d'arrêter.
 import { t } from "./i18n.js";
 import { state, $, esc, invoke } from "./state.js";
-import { renderStatus } from "./render.js";
+import { renderStatus, fadeOutRow } from "./render.js";
+import { toast } from "./toast.js";
 
 const dlg = $("treeDlg");
 let treePlan = null; // { pid, members }
@@ -20,8 +21,8 @@ export function renderTree() {
     .join("");
 }
 
-export function openTree(pid, members) {
-  treePlan = { pid, members };
+export function openTree(pid, members, port) {
+  treePlan = { pid, members, port };
   $("parentsRow").hidden = !members.some((m) => m.role === "parent");
   $("withParents").checked = true;
   renderTree();
@@ -33,15 +34,18 @@ export function initTreeDialog(refresh) {
   $("withParents").addEventListener("change", renderTree);
   $("treeCancel").addEventListener("click", () => dlg.close());
   $("treeOk").addEventListener("click", async () => {
-    const { pid } = treePlan;
+    const { pid, port } = treePlan;
     const withParents = $("withParents").checked && !$("parentsRow").hidden;
     dlg.close();
     let status;
     try {
       await invoke("kill_process_tree", { pid, includeParents: withParents });
       status = { kind: "good", text: (tr) => tr("tree_killed", { pid }) };
+      toast(t("toast_tree_freed", { port }));
+      await fadeOutRow(pid);
     } catch (e) {
       status = { kind: "err", text: String(e) };
+      toast(String(e), "err");
     }
     await refresh();
     state.status = status; // refresh() remplace le statut : on réaffiche le résultat du Kill

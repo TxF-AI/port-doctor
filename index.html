@@ -8,9 +8,10 @@
   <body>
     <div id="app">
       <header class="topbar">
-        <div class="brand"><span class="led" id="led"></span>PortDoctor <small>v0.2.0</small></div>
+        <div class="brand"><span class="led" id="led"></span>PortDoctor <small>v0.3.0</small></div>
         <input id="filter" type="search" data-i18n-ph="filter_ph" autocomplete="off" spellcheck="false" />
         <label class="chk"><input id="devOnly" type="checkbox" /> <span data-i18n="dev_only"></span></label>
+        <label class="chk" data-i18n-title="simple_title"><input id="simple" type="checkbox" /> <span data-i18n="simple_view"></span></label>
         <button id="refresh" class="btn" data-i18n="refresh" data-i18n-title="refresh_title"></button>
         <select id="lang" class="btn" data-i18n-title="language" aria-label="Language">
           <option value="fr">FR</option>
@@ -26,11 +27,11 @@
           <thead>
             <tr>
               <th data-k="port" data-i18n="col_port"></th>
-              <th data-k="proto" data-i18n="col_proto"></th>
-              <th data-k="process_name" data-i18n="col_process"></th>
-              <th data-k="pid" class="num" data-i18n="col_pid"></th>
-              <th data-k="memory_bytes" class="num" data-i18n="col_memory"></th>
-              <th data-k="source" data-i18n="col_source"></th>
+              <th data-k="proto" class="adv" data-i18n="col_proto"></th>
+              <th data-k="process_name"><span class="adv" data-i18n="col_process"></span><span class="simple-only" data-i18n="col_what"></span></th>
+              <th data-k="pid" class="num adv" data-i18n="col_pid"></th>
+              <th data-k="memory_bytes" class="num adv" data-i18n="col_memory"></th>
+              <th data-k="source" class="adv" data-i18n="col_source"></th>
               <th data-i18n="col_action"></th>
             </tr>
           </thead>
@@ -41,6 +42,8 @@
 
       <footer class="foot"><span id="status">…</span></footer>
     </div>
+
+    <div id="toasts" aria-live="polite"></div>
 
     <dialog id="treeDlg">
       <h2 data-i18n="dlg_title"></h2>

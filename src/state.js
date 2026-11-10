@@ -4,6 +4,10 @@ import { t } from "./i18n.js";
 export const invoke = (cmd, args) => window.__TAURI__.core.invoke(cmd, args);
 
 
+function loadSimple() {
+  try { return localStorage.getItem("view") === "simple"; } catch { return false; }
+}
+
 export const state = {
   ports: [],
   ranges: [],
@@ -14,6 +18,7 @@ export const state = {
   armTimer: null,
   backendMem: 0,
   busy: false,
+  simple: loadSimple(), // Vue Simple (sans PID ni détails techniques) ou Vue Avancée
   // Statut du pied de page, gardé sous forme de données pour être retraduit au changement de langue.
   status: { kind: "none" },
 };
@@ -27,6 +32,12 @@ export const fmtMem = (b) =>
 
 // Un port (de dev ou non) tombe-t-il dans une plage exclue par Windows ?
 export const inExcluded = (port) => state.ranges.find((r) => port >= r.start && port <= r.end);
+
+export function setSimple(on) {
+  state.simple = on;
+  document.body.classList.toggle("simple", on);
+  try { localStorage.setItem("view", on ? "simple" : "advanced"); } catch { /* stockage indisponible */ }
+}
 
 export function disarm() { clearTimeout(state.armTimer); state.armed = null; }
 

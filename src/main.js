@@ -1,7 +1,7 @@
 // Point d'entrée : rafraîchissement, événements globaux, langue.
 import "./styles.css";
 import { setLang, getLang, applyStatic } from "./i18n.js";
-import { state, $, invoke, disarm } from "./state.js";
+import { state, $, invoke, disarm, setSimple } from "./state.js";
 import { renderAll, renderRows } from "./render.js";
 import { initKill } from "./kill.js";
 import { initTreeDialog, isTreeOpen, renderTree } from "./tree-dialog.js";
@@ -42,6 +42,11 @@ document.querySelector("thead").addEventListener("click", (e) => {
 $("filter").addEventListener("input", (e) => { state.filter = e.target.value; renderRows(); });
 $("devOnly").addEventListener("change", (e) => { state.devOnly = e.target.checked; renderRows(); });
 $("refresh").addEventListener("click", () => refresh(true));
+
+// Vue Simple / Avancée : mémorisée, appliquée avant le premier rendu.
+$("simple").checked = state.simple;
+setSimple(state.simple);
+$("simple").addEventListener("change", (e) => { disarm(); setSimple(e.target.checked); renderRows(); });
 
 // ── Langue : sélecteur FR / EN, transmis au backend (messages d'erreur et menu du tray) ──
 function applyLanguage() {

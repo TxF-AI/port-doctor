@@ -51,6 +51,37 @@ pub fn classify_source(process_name: &str) -> &'static str {
     }
 }
 
+/// Famille d'un processus pour la Vue Simple, déduite de son nom et de sa ligne de commande.
+/// `cmd` doit déjà être en minuscules. Sert uniquement à l'affichage : aucune décision de Kill n'en dépend.
+pub fn classify_kind(name: &str, cmd: &str, source: &str, protected: bool) -> &'static str {
+    let n = name.to_lowercase();
+    let n = n.strip_suffix(".exe").unwrap_or(&n);
+    let has = |words: &[&str]| words.iter().any(|w| cmd.contains(w));
+    if protected {
+        "system"
+    } else if source == "Docker" {
+        "docker"
+    } else if source == "WSL2" {
+        "wsl"
+    } else if matches!(n, "node" | "bun" | "deno") {
+        if has(&["vite", "webpack", "parcel", "react-scripts", "astro", "nuxt", "ng serve", "svelte", "rsbuild", "storybook"]) {
+            "frontend"
+        } else {
+            "node"
+        }
+    } else if n.starts_with("python") || matches!(n, "uvicorn" | "gunicorn" | "flask" | "py" | "pythonw") {
+        "python"
+    } else if n.starts_with("java") {
+        "java"
+    } else if n.starts_with("dotnet") {
+        "dotnet"
+    } else if matches!(n, "postgres" | "mysqld" | "mongod" | "redis-server" | "mariadbd" | "sqlservr") {
+        "database"
+    } else {
+        "other"
+    }
+}
+
 /// Socket brut avant fusion : (protocole, port, adresse, pid).
 type RawSocket = (&'static str, u16, String, u32);
 
@@ -98,13 +129,19 @@ fn merge(raw: Vec<RawSocket>, sys: &System) -> Vec<PortEntry> {
             let parent_name = parent
                 .and_then(|pp| sys.process(pp))
                 .map(|p| p.name().to_string_lossy().into_owned());
+            let cmdline = process
+                .map(|p| p.cmd().iter().map(|a| a.to_string_lossy()).collect::<Vec<_>>().join(" ").to_lowercase())
+                .unwrap_or_default();
+            let protected = is_protected(pid, &name);
+            let source = classify_source(&name);
             PortEntry {
                 port,
                 proto: proto.to_string(),
                 addresses: addrs.into_iter().collect(),
                 pid,
-                protected: is_protected(pid, &name),
-                source: classify_source(&name).to_string(),
+                kind: classify_kind(&name, &cmdline, source, protected),
+                protected,
+                source: source.to_string(),
                 is_dev_port: is_dev_port(port),
                 exe_path: process
                     .and_then(|p| p.exe())
@@ -497,6 +534,7 @@ mod tests {
             memory_bytes: 0,
             source: "Host".into(),
             is_dev_port: true,
+            kind: "other",
             protected: is_protected(pid, name),
             parent_pid: None,
             parent_name: None,
@@ -527,6 +565,18 @@ mod tests {
         assert_eq!(classify_source("com.docker.backend.exe"), "Docker");
         assert_eq!(classify_source("docker-proxy.exe"), "Docker");
         assert_eq!(classify_source("node.exe"), "Host");
+    }
+
+    #[test]
+    fn kind_is_guessed_from_name_and_command_line() {
+        assert_eq!(classify_kind("node.exe", "node vite --port 5173", "Host", false), "frontend");
+        assert_eq!(classify_kind("node.exe", "node server.js", "Host", false), "node");
+        assert_eq!(classify_kind("Python.exe", "python -m uvicorn app:app", "Host", false), "python");
+        assert_eq!(classify_kind("postgres.exe", "", "Host", false), "database");
+        assert_eq!(classify_kind("docker-proxy.exe", "", "Docker", false), "docker");
+        assert_eq!(classify_kind("wslrelay.exe", "", "WSL2", false), "wsl");
+        assert_eq!(classify_kind("svchost.exe", "", "Host", true), "system");
+        assert_eq!(classify_kind("mystery.exe", "", "Host", false), "other");
     }
 
     #[test]
