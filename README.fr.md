@@ -1,4 +1,4 @@
-# PortDoctor (v0.4.0)
+# PortDoctor (v0.5.0)
 
 🇬🇧 [English version](README.md)
 
@@ -56,6 +56,7 @@ Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bout
 | 🌳 **Smart Kill (arbre)** | Si le processus a des enfants ou un lanceur `npm` / `yarn` / `pnpm` / `nodemon` au-dessus, une modale liste l'arbre exact (parents, port, enfants) avant d'arrêter. Les parents sont une case à cocher. |
 | 🛡️ **Garde-fous** | `System`, `svchost.exe`, `lsass.exe`, `csrss.exe`, `services.exe`… sont verrouillés (« Protégé »), côté backend aussi. Un arbre contenant un processus protégé est refusé en entier. PortDoctor ne s'arrête jamais lui-même ni ses ancêtres, et un shell ou un terminal ordinaire n'est jamais pris pour un lanceur. |
 | 🛡️ **Port Shield** | Cliquez sur le bouclier à côté d'un port pour le surveiller. Si un autre processus le prend, ou si celui que vous attendiez le libère, PortDoctor affiche une alerte, fait clignoter la barre des tâches et ressort la fenêtre du tray. Alerte seulement : rien n'est jamais arrêté automatiquement. Le processus attendu est reconnu par son nom, donc relancer le même serveur ne déclenche pas de fausse alerte. Vérifié toutes les 2 secondes, et seulement si au moins un port est protégé. |
+| 📋 **Diagnostic pour IA** | Le bouton **📋 AI** de chaque ligne copie un résumé Markdown du port (processus, PID, parent, chemin, mémoire, adresses d'écoute, état du Port Shield, plage Hyper-V) avec une question toute prête, à coller dans Claude Code, Cursor ou un autre assistant IA. Rien n'est envoyé : le texte va seulement dans le presse-papiers. |
 | 👁️ **Vue simple** | Une case à cocher qui masque les PID et les colonnes techniques et décrit en mots clairs ce qui occupe le port (« Serveur web de développement (Vite, React…) », « Application Python », « Base de données », « Conteneur Docker »). Un gros bouton **Libérer**. Mémorisée entre deux lancements ; la Vue avancée garde tous les détails. |
 | 🌐 **Langues** | Interface et messages du backend en français ou en anglais, au choix (mémorisé). Le menu du tray suit la langue. |
 | 🐧 **Mapping WSL2** | Les ports relayés par `wslrelay.exe` sont étiquetés avec la distribution active : `WSL2 (Ubuntu)`. Les ports de conteneurs sont marqués `Docker`. |
@@ -63,7 +64,7 @@ Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bout
 
 ## Installation
 
-1. Télécharge **[port-doctor.exe (v0.4.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.4.0/port-doctor.exe)** depuis la [page de la Release](https://github.com/TxF-AI/port-doctor/releases/tag/v0.4.0).
+1. Télécharge **[port-doctor.exe (v0.5.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.5.0/port-doctor.exe)** depuis la [page de la Release](https://github.com/TxF-AI/port-doctor/releases/tag/v0.5.0).
 2. Vérifie son empreinte :
 
    ```powershell
@@ -73,7 +74,7 @@ Quand un processus a des enfants ou un lanceur `npm` / `yarn` au-dessus, le bout
    Le résultat doit être :
 
    ```
-   7964BBA164FFC347F7E3F5CB914875CD397ECC686ADB77265D407CA5C5F5E3A3
+   ACB39B6A20E88F7D539D1ABC6CBF3FB99F0CFEA99ACAC74B42145432F0D761E9
    ```
 
 3. Double-clique sur `port-doctor.exe`. Aucune installation : le fichier est portable. L'icône apparaît dans la zone de notification (clic gauche pour afficher, clic droit pour quitter).

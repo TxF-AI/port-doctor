@@ -1,4 +1,4 @@
-# PortDoctor (v0.4.0)
+# PortDoctor (v0.5.0)
 
 🇫🇷 [Version française](README.fr.md)
 
@@ -64,6 +64,7 @@ The **Port Shield** (small shield button before **Kill** / **Free port**, on eve
 | 🌳 **Smart Kill (tree)** | If the process has children or an `npm` / `yarn` / `pnpm` / `nodemon` launcher above it, a modal lists the exact tree (parents, port owner, children) before stopping. Parents are an opt-in checkbox. |
 | 🛡️ **Guardrails** | `System`, `svchost.exe`, `lsass.exe`, `csrss.exe`, `services.exe`… are locked, in the backend too. A tree containing a protected process is refused as a whole. PortDoctor never stops itself or its ancestors, and an ordinary shell or terminal is never mistaken for a launcher. |
 | 🛡️ **Port Shield** | Click the shield next to a port to watch it. If another process takes it, or the one you expected lets go of it, PortDoctor shows a warning toast, flashes the taskbar and brings the window back from the tray. Alert only: nothing is ever stopped automatically. The expected process is matched by name, so restarting the same server does not trigger a false alarm. Checked every 2 seconds, and only when at least one port is shielded. |
+| 📋 **Copy AI diagnostic** | The **📋 AI** button on each row copies a Markdown summary of that port (process, PID, parent, path, memory, listening addresses, Port Shield state, Hyper-V range) with a ready-made question, to paste into Claude Code, Cursor or any AI assistant. Nothing is sent anywhere: it only goes to your clipboard. |
 | 👁️ **Simple view** | A toggle that hides PIDs and technical columns and names what holds the port in plain words ("Dev web server (Vite, React…)", "Python app", "Database", "Docker container"). One big **Free port** button. Remembered between launches; the Advanced view keeps every detail. |
 | 🌐 **Languages** | Interface and backend messages in French or English, your choice (remembered). The tray menu follows the language. |
 | 🐧 **WSL2 mapping** | Ports relayed by `wslrelay.exe` are labelled with the running distribution: `WSL2 (Ubuntu)`. Container ports are marked `Docker`. |
@@ -71,7 +72,7 @@ The **Port Shield** (small shield button before **Kill** / **Free port**, on eve
 
 ## Installation
 
-1. Download **[port-doctor.exe (v0.4.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.4.0/port-doctor.exe)** from the [release page](https://github.com/TxF-AI/port-doctor/releases/tag/v0.4.0).
+1. Download **[port-doctor.exe (v0.5.0)](https://github.com/TxF-AI/port-doctor/releases/download/v0.5.0/port-doctor.exe)** from the [release page](https://github.com/TxF-AI/port-doctor/releases/tag/v0.5.0).
 2. Check its hash:
 
    ```powershell
@@ -81,7 +82,7 @@ The **Port Shield** (small shield button before **Kill** / **Free port**, on eve
    The result must be:
 
    ```
-   7964BBA164FFC347F7E3F5CB914875CD397ECC686ADB77265D407CA5C5F5E3A3
+   ACB39B6A20E88F7D539D1ABC6CBF3FB99F0CFEA99ACAC74B42145432F0D761E9
    ```
 
 3. Double-click `port-doctor.exe`. No installation: the file is portable. The icon appears in the notification area (left click to show, right click to quit).

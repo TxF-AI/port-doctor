@@ -106,6 +106,8 @@ tr.leaving > td { opacity: 0; transition: opacity .26s ease; }
 
 /* Port Shield : bouton discret, allumé quand le port est surveillé. */
 .shield { background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; margin-right: 6px; font-size: 13px; line-height: 1.4; cursor: pointer; filter: grayscale(1); opacity: .55; }
+.diag { background: transparent; border: 1px solid var(--line); color: var(--dim); border-radius: 4px; padding: 2px 7px; margin-right: 6px; font: inherit; font-size: 12px; line-height: 1.4; cursor: pointer; white-space: nowrap; }
+.diag:hover { color: var(--info); border-color: var(--info); }
 .shield:hover { opacity: 1; border-color: var(--info); }
 .shield.on { filter: none; opacity: 1; border-color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .toast.out { opacity: 0; transform: translateY(8px); }

@@ -5,6 +5,7 @@ import { state, $, invoke, disarm, setSimple } from "./state.js";
 import { renderAll, renderRows } from "./render.js";
 import { initKill } from "./kill.js";
 import { initShield } from "./shield.js";
+import { initDiag } from "./diag.js";
 import { initTreeDialog, isTreeOpen, renderTree } from "./tree-dialog.js";
 
 async function refresh(manual = false) {
@@ -34,6 +35,7 @@ async function loadRanges() {
 initTreeDialog(refresh);
 initKill(refresh);
 initShield();
+initDiag();
 
 document.querySelector("thead").addEventListener("click", (e) => {
   const th = e.target.closest("th[data-k]");

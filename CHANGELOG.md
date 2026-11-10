@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 (2026-11-10)
+
+- **Copy AI diagnostic prompt**: a **📋 AI** button on every row (both views) copies a Markdown summary of the port to the clipboard: process, PID, parent, executable path, memory, listening addresses, Port Shield state (with `SHIELD_ALERT` when the holder is not the expected process) and Hyper-V excluded range, followed by a ready-made task for an AI assistant (Claude Code, Cursor…). The prompt is always in English; the confirmation toast follows the interface language. Nothing leaves the machine.
+- New `diag.js` module and `get_diag_context` command (app and Windows version).
+
 ## 0.4.0 (2026-11-10)
 
 - **Port Shield** (alert only): a shield button next to each non-protected TCP port. A background watcher (every 2 seconds, only while at least one port is shielded) compares who holds the port with the process name you expected. If another process takes it, or nobody holds it anymore, you get a warning toast, the taskbar flashes and the window comes back from the tray. Nothing is ever stopped automatically, so the "no stop without confirmation" rule is unchanged. The first observation of a port is silent, and a Kill from PortDoctor removes the shield on that port.

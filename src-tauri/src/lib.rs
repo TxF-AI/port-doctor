@@ -44,6 +44,21 @@ async fn get_excluded_ranges() -> Result<Vec<ExcludedRange>, String> {
     ports::excluded_ranges()
 }
 
+/// Contexte fixe du diagnostic copié pour un assistant IA : version de l'appli et de Windows.
+#[derive(serde::Serialize)]
+struct DiagContext {
+    version: &'static str,
+    os: String,
+}
+
+#[tauri::command]
+fn get_diag_context() -> DiagContext {
+    DiagContext {
+        version: env!("CARGO_PKG_VERSION"),
+        os: sysinfo::System::long_os_version().unwrap_or_else(|| "Windows".into()),
+    }
+}
+
 /// Mémoire du backend PortDoctor (hors WebView), en octets.
 #[tauri::command]
 async fn get_backend_memory() -> u64 {
@@ -193,6 +208,7 @@ pub fn run() {
             preview_kill_tree,
             get_excluded_ranges,
             get_backend_memory,
+            get_diag_context,
             set_language,
             set_shield
         ])
