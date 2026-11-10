@@ -30,7 +30,7 @@ A `npm run dev` closed in a hurry, a zombie `node.exe` still holding port 3000, 
 
 ![Animated demo](assets/demo.gif)
 
-*Animated demo (fictitious data): switch to the **Simple view** (plain-language labels, big **Free port** button), free a port (confirmation, a **toast** notification and the row fades out), then Smart Kill on port 5173: the modal shows the process tree (`cmd` → `node` → `node` → child), and a toast confirms the port is freed.*
+*Animated demo (fictitious data): switch to the **Simple view** (plain-language labels, big **Free port** button), free a port (confirmation, a **toast** notification and the row fades out), then Smart Kill on port 5173: the modal shows the process tree (`cmd` → `node` → `node` → child), and a toast confirms the port is freed. Finally the **Port Shield**: click the shield on port 5173 (toast "port 5173 is watched"), then a yellow alert warns that another process (`python.exe`) now holds the port instead of `node.exe`.*
 
 <details>
 <summary>Static screenshots</summary>
@@ -46,6 +46,10 @@ The **Simple view** (checkbox in the header, remembered between launches) hides 
 ![PortDoctor Smart Kill](assets/ui-smartkill.png)
 
 When a process has children or an `npm` / `yarn` launcher above it, the **Kill** button opens the **Smart Kill** modal: it lists the exact tree (parents, port owner, children) and lets you exclude the parents before stopping.
+
+![PortDoctor Port Shield](assets/ui-shield.png)
+
+The **Port Shield** (small shield button before **Kill** / **Free port**, on every unprotected TCP row): click it to watch a port. If another process takes it, a yellow alert toast tells you which one (here `python.exe` instead of `node.exe`). Alert only: PortDoctor never stops anything on its own.
 
 > The screenshots use **demo data** (no user name and no real process from the machine).
 
