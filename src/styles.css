@@ -106,8 +106,14 @@ tr.leaving > td { opacity: 0; transition: opacity .26s ease; }
 
 /* Port Shield : bouton discret, allumé quand le port est surveillé. */
 .shield { background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; margin-right: 6px; font-size: 13px; line-height: 1.4; cursor: pointer; filter: grayscale(1); opacity: .55; }
-.diag { background: transparent; border: 1px solid var(--line); color: var(--dim); border-radius: 4px; padding: 2px 7px; margin-right: 6px; font: inherit; font-size: 12px; line-height: 1.4; cursor: pointer; white-space: nowrap; }
-.diag:hover { color: var(--info); border-color: var(--info); }
+.btn-ai-prompt { --accent-cyan: #06b6d4; --accent-blue: #3b82f6; background: linear-gradient(135deg, color-mix(in srgb, var(--accent-cyan) 22%, transparent), color-mix(in srgb, var(--accent-blue) 22%, transparent)); border: 1px solid var(--accent-cyan); color: #a5f3fc; border-radius: 4px; padding: 3px 9px; margin-right: 6px; font: inherit; font-size: 12px; line-height: 1.4; cursor: pointer; white-space: nowrap; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+.btn-ai-prompt:hover { transform: translateY(-1px); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-cyan) 45%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--accent-cyan) 38%, transparent), color-mix(in srgb, var(--accent-blue) 38%, transparent)); }
+.btn-ai-prompt:active { transform: translateY(0); box-shadow: none; }
+body.simple .btn-ai-prompt { padding: 6px 12px; }
+.status-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 11px; margin-left: 6px; border: 1px solid; }
+.status-badge.shielded { color: var(--info); border-color: var(--info); background: color-mix(in srgb, var(--info) 12%, transparent); }
+.status-badge.alert { color: var(--warn); border-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.toast.ai { border-color: #06b6d4; box-shadow: 0 4px 18px rgba(6, 182, 212, .28); }
 .shield:hover { opacity: 1; border-color: var(--info); }
 .shield.on { filter: none; opacity: 1; border-color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .toast.out { opacity: 0; transform: translateY(8px); }

@@ -1,6 +1,6 @@
 [package]
 name = "port-doctor"
-version = "0.5.0"
+version = "0.5.1"
 description = "Libère les ports bloqués et inspecte WSL2 / Hyper-V"
 authors = ["TxF-AI"]
 license = "MIT"

@@ -31,17 +31,20 @@ export function renderRows() {
         ? `<button class="kill" disabled title="${esc(t("protected_title"))}">${esc(t("protected"))}</button>`
         : `<button class="kill${armed ? " armed" : ""}" data-key="${esc(key)}" data-pid="${p.pid}" data-port="${p.port}">${esc(armed ? t("confirm") : t(state.simple ? "free_port" : "kill"))}</button>`;
       const on = state.shield[p.port] !== undefined;
+      // Sans bouclier (processus protégé ou UDP) : un emplacement vide de même largeur garde les boutons alignés.
       const shield = p.protected || p.proto !== "TCP"
-        ? ""
+        ? `<button class="shield" style="visibility:hidden" disabled tabindex="-1" aria-hidden="true">🛡</button>`
         : `<button class="shield${on ? " on" : ""}" data-port="${p.port}" data-name="${esc(p.process_name)}" aria-pressed="${on}" title="${esc(t(on ? "shield_on_title" : "shield_off_title"))}">🛡</button>`;
-      const diag = `<button class="diag" data-key="${esc(key)}" title="${esc(t("diag_title"))}">📋 AI</button>`;
+      const diag = `<button class="btn-ai-prompt" data-key="${esc(key)}" title="${esc(t("diag_title"))}">📋 AI Prompt</button>`;
+      const alert = on && state.shield[p.port].toLowerCase() !== p.process_name.toLowerCase();
+      const badge = on ? `<span class="status-badge ${alert ? "alert" : "shielded"}">${esc(t(alert ? "badge_alert" : "badge_shielded"))}</span>` : "";
       // Vue Simple : un libellé clair à la place du nom de l'exécutable (celui-ci reste dans l'infobulle).
       const what = state.simple ? esc(t(`kind_${p.kind}`)) : esc(p.process_name);
       const hover = `${p.process_name}${state.simple ? ` (PID ${p.pid})` : ""}\n${p.exe_path ?? ""}\n${p.addresses.join(", ")}`;
       return `<tr data-pid="${p.pid}" class="${p.is_dev_port ? "dev" : ""}${ex ? " conflict" : ""}">
         <td class="port">${p.port}</td>
         <td class="adv">${esc(p.proto)}</td>
-        <td title="${esc(hover)}">${what}${tags}</td>
+        <td title="${esc(hover)}">${what}${tags}${badge}</td>
         <td class="num adv">${p.pid}</td>
         <td class="num adv">${fmtMem(p.memory_bytes)}</td>
         <td class="adv">${esc(p.source)}</td>

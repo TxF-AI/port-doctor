@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 (2026-11-10)
+
+- **AI Prompt button restyled**: renamed **📋 AI Prompt**, cyan / blue gradient with a hover lift and glow; cyan confirmation toast shown for 3.5 seconds.
+- **Diagnostic**: new "Elevated Privileges (Admin)" line (read from Windows), emoji section headers.
+- **Shield badges**: a "shielded" badge next to the process of a watched port, and a "Shield alert" badge when another process holds it.
+- **Fix**: action buttons are now aligned on rows without a shield button (protected processes, UDP).
+
 ## 0.5.0 (2026-11-10)
 
 - **Copy AI diagnostic prompt**: a **📋 AI** button on every row (both views) copies a Markdown summary of the port to the clipboard: process, PID, parent, executable path, memory, listening addresses, Port Shield state (with `SHIELD_ALERT` when the holder is not the expected process) and Hyper-V excluded range, followed by a ready-made task for an AI assistant (Claude Code, Cursor…). The prompt is always in English; the confirmation toast follows the interface language. Nothing leaves the machine.

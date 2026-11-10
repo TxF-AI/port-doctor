@@ -3,7 +3,7 @@
 ## Vue d'ensemble
 - **Projet :** PortDoctor (libère les ports bloqués, erreur `EADDRINUSE`, inspecte WSL2/Docker et les plages de ports exclues par Hyper-V). Utilitaire léger dans la zone de notification (System Tray) de Windows.
 - **Stack :** Rust (backend) + Tauri v2 (tray) + Vite + JavaScript vanilla + Tailwind CSS v4. Thème « HUD cyberpunk » repris de DevEnv Doctor (`--bg #090a0f`, accents réservés aux statuts).
-- **Version courante :** v0.5.0 (publiée sur GitHub). La version vient de `src-tauri/tauri.conf.json` : la garder égale à `Cargo.toml`, `package.json`, `package-lock.json`, `Cargo.lock` et `index.html`.
+- **Version courante :** v0.5.1 (publiée sur GitHub). La version vient de `src-tauri/tauri.conf.json` : la garder égale à `Cargo.toml`, `package.json`, `package-lock.json`, `Cargo.lock` et `index.html`.
 - **Règles produit :** lecture seule par défaut ; seule écriture = arrêt d'un processus, toujours après confirmation visuelle ; processus système protégés ; rien n'est envoyé sur Internet.
 
 ## Commandes clés

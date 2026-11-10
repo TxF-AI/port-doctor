@@ -49,6 +49,13 @@ async fn get_excluded_ranges() -> Result<Vec<ExcludedRange>, String> {
 struct DiagContext {
     version: &'static str,
     os: String,
+    /// PortDoctor tourne-t-il avec les droits administrateur ?
+    elevated: bool,
+}
+
+#[link(name = "shell32")]
+unsafe extern "system" {
+    fn IsUserAnAdmin() -> i32;
 }
 
 #[tauri::command]
@@ -56,6 +63,8 @@ fn get_diag_context() -> DiagContext {
     DiagContext {
         version: env!("CARGO_PKG_VERSION"),
         os: sysinfo::System::long_os_version().unwrap_or_else(|| "Windows".into()),
+        // SAFETY : fonction Win32 sans paramètre ni effet de bord.
+        elevated: unsafe { IsUserAnAdmin() } != 0,
     }
 }
 
