@@ -45,8 +45,10 @@ async function onKill(btn, refresh) {
 }
 
 export function initKill(refresh) {
-  $("rows").addEventListener("click", (e) => {
-    const btn = e.target.closest("button.kill[data-key]");
-    if (btn) onKill(btn, refresh);
-  });
+  for (const id of ["rows", "quick"]) {
+    $(id).addEventListener("click", (e) => {
+      const btn = e.target.closest("button.kill[data-key]");
+      if (btn) onKill(btn, refresh);
+    });
+  }
 }

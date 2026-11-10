@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 (2026-11-10)
+
+- **Common ports cards** (Simple view): four cards for ports 3000, 5173, 8080 and 5432 with a Free / In use badge, the process name and PID, the Free port button (same confirmation and Smart Kill as the table) and the Port Shield toggle. On a free port the shield is disabled: it needs a process to expect.
+- **Light theme**: a ☀️ / 🌙 button in the header; the choice is remembered. Status colors are darkened in the light theme to stay readable.
+- New `theme.js` module; the table and the cards share the same button builders and click handlers.
+
 ## 0.5.1 (2026-11-10)
 
 - **AI Prompt button restyled**: renamed **📋 AI Prompt**, cyan / blue gradient with a hover lift and glow; cyan confirmation toast shown for 3.5 seconds.

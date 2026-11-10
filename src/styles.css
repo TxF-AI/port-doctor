@@ -12,6 +12,27 @@
   --bad: #ff3366;
   --warn: #ffb020;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --ai-text: #a5f3fc;
+  --backdrop: rgba(5, 6, 10, .72);
+  --shadow: rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+/* Thème clair : mêmes rôles, couleurs de statut assombries pour rester lisibles sur fond clair. */
+:root[data-theme="light"] {
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --line: #d3d9e6;
+  --text: #1a2030;
+  --dim: #5b6377;
+  --ok: #0a8a57;
+  --info: #0277bd;
+  --bad: #d11a45;
+  --warn: #b25e00;
+  --ai-text: #075985;
+  --backdrop: rgba(40, 48, 66, .45);
+  --shadow: rgba(30, 40, 60, .18);
+  color-scheme: light;
 }
 
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 var(--mono); }
@@ -68,7 +89,7 @@ td .sub { color: var(--dim); }
 .kill:disabled { border-color: var(--line); color: var(--dim); cursor: not-allowed; }
 
 dialog { margin: auto; background: var(--surface); color: var(--text); border: 1px solid var(--bad); border-radius: 6px; padding: 18px 20px; width: min(520px, 92vw); font: inherit; }
-dialog::backdrop { background: rgba(5, 6, 10, .72); backdrop-filter: blur(3px); }
+dialog::backdrop { background: var(--backdrop); backdrop-filter: blur(3px); }
 dialog h2 { margin: 0 0 8px; font-size: 15px; }
 .dim { color: var(--dim); }
 .small { font-size: 12px; }
@@ -94,27 +115,45 @@ body.simple td.port { font-size: 16px; }
 body.simple tbody td { padding: 10px 12px; }
 body.simple .kill { padding: 6px 14px; min-width: 110px; font-weight: 700; }
 
+/* Carte des ports fréquents (Vue Simple) : un coup d'œil sur 3000 / 5173 / 8080 / 5432, libres ou non. */
+.quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.quick[hidden] { display: none; }
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; transition: opacity .26s ease; }
+.qcard.busy { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); }
+.qcard.leaving { opacity: .35; }
+.qhead { display: flex; align-items: baseline; gap: 8px; }
+.qhead b { font-size: 18px; color: var(--info); }
+.qhead span { color: var(--dim); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qstatus { display: flex; align-items: center; gap: 6px; min-height: 20px; }
+.qstatus .status-badge { margin-left: 0; }
+.qstatus .who { color: var(--dim); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qactions { display: flex; align-items: center; min-height: 30px; }
+.qactions .kill { flex: 1; min-width: 0; }
+.shield:disabled { cursor: not-allowed; opacity: .3; }
+
 /* Une ligne qu'on vient d'arrêter s'efface en fondu avant le rafraîchissement. */
 tr.leaving { transform: translateX(24px); transition: transform .26s ease; }
 tr.leaving > td { opacity: 0; transition: opacity .26s ease; }
 
 /* Notifications discrètes en bas à droite. */
 #toasts { position: fixed; right: 14px; bottom: 40px; display: flex; flex-direction: column; gap: 8px; z-index: 50; pointer-events: none; }
-.toast { background: var(--surface); border: 1px solid var(--ok); color: var(--text); border-radius: 4px; padding: 8px 14px; max-width: 360px; box-shadow: 0 4px 18px rgba(0, 0, 0, .5); animation: toast-in .2s ease-out; transition: opacity .35s, transform .35s; }
+.toast { background: var(--surface); border: 1px solid var(--ok); color: var(--text); border-radius: 4px; padding: 8px 14px; max-width: 360px; box-shadow: 0 4px 18px var(--shadow); animation: toast-in .2s ease-out; transition: opacity .35s, transform .35s; }
 .toast.err { border-color: var(--bad); }
 .toast.warn { border-color: var(--warn); }
 
 /* Port Shield : bouton discret, allumé quand le port est surveillé. */
 .shield { background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; margin-right: 6px; font-size: 13px; line-height: 1.4; cursor: pointer; filter: grayscale(1); opacity: .55; }
-.btn-ai-prompt { --accent-cyan: #06b6d4; --accent-blue: #3b82f6; background: linear-gradient(135deg, color-mix(in srgb, var(--accent-cyan) 22%, transparent), color-mix(in srgb, var(--accent-blue) 22%, transparent)); border: 1px solid var(--accent-cyan); color: #a5f3fc; border-radius: 4px; padding: 3px 9px; margin-right: 6px; font: inherit; font-size: 12px; line-height: 1.4; cursor: pointer; white-space: nowrap; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+.btn-ai-prompt { --accent-cyan: #06b6d4; --accent-blue: #3b82f6; background: linear-gradient(135deg, color-mix(in srgb, var(--accent-cyan) 22%, transparent), color-mix(in srgb, var(--accent-blue) 22%, transparent)); border: 1px solid var(--accent-cyan); color: var(--ai-text); border-radius: 4px; padding: 3px 9px; margin-right: 6px; font: inherit; font-size: 12px; line-height: 1.4; cursor: pointer; white-space: nowrap; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
 .btn-ai-prompt:hover { transform: translateY(-1px); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-cyan) 45%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--accent-cyan) 38%, transparent), color-mix(in srgb, var(--accent-blue) 38%, transparent)); }
 .btn-ai-prompt:active { transform: translateY(0); box-shadow: none; }
 body.simple .btn-ai-prompt { padding: 6px 12px; }
 .status-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 11px; margin-left: 6px; border: 1px solid; }
+.status-badge.free { color: var(--ok); border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.status-badge.occupied { color: var(--bad); border-color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
 .status-badge.shielded { color: var(--info); border-color: var(--info); background: color-mix(in srgb, var(--info) 12%, transparent); }
 .status-badge.alert { color: var(--warn); border-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
 .toast.ai { border-color: #06b6d4; box-shadow: 0 4px 18px rgba(6, 182, 212, .28); }
-.shield:hover { opacity: 1; border-color: var(--info); }
+.shield:hover:not(:disabled) { opacity: 1; border-color: var(--info); }
 .shield.on { filter: none; opacity: 1; border-color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .toast.out { opacity: 0; transform: translateY(8px); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }

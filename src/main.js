@@ -6,6 +6,7 @@ import { renderAll, renderRows } from "./render.js";
 import { initKill } from "./kill.js";
 import { initShield } from "./shield.js";
 import { initDiag } from "./diag.js";
+import { initTheme, applyTheme } from "./theme.js";
 import { initTreeDialog, isTreeOpen, renderTree } from "./tree-dialog.js";
 
 async function refresh(manual = false) {
@@ -36,6 +37,7 @@ initTreeDialog(refresh);
 initKill(refresh);
 initShield();
 initDiag();
+initTheme();
 
 document.querySelector("thead").addEventListener("click", (e) => {
   const th = e.target.closest("th[data-k]");
@@ -55,6 +57,7 @@ $("simple").addEventListener("change", (e) => { disarm(); setSimple(e.target.che
 // ── Langue : sélecteur FR / EN, transmis au backend (messages d'erreur et menu du tray) ──
 function applyLanguage() {
   applyStatic();
+  applyTheme();
   $("lang").value = getLang();
   invoke("set_language", { lang: getLang() }).catch(() => {});
   if (isTreeOpen()) renderTree();

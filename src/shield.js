@@ -32,10 +32,12 @@ function toggle(port, name) {
 
 export function initShield() {
   save(); // renvoie au backend la liste mémorisée
-  $("rows").addEventListener("click", (e) => {
-    const btn = e.target.closest("button.shield");
-    if (btn) toggle(btn.dataset.port, btn.dataset.name);
-  });
+  for (const id of ["rows", "quick"]) {
+    $(id).addEventListener("click", (e) => {
+      const btn = e.target.closest("button.shield:not(:disabled)");
+      if (btn) toggle(btn.dataset.port, btn.dataset.name);
+    });
+  }
   window.__TAURI__.event.listen("shield-alert", ({ payload: a }) => {
     const text = a.kind === "taken"
       ? t("shield_taken", { port: a.port, name: a.process_name, pid: a.pid, expected: a.expected })
