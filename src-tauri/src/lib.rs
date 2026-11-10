@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::Duration;
 
-use models::{ExcludedRange, KillOutcome, PortEntry, ShieldAlert, TreeMember};
+use models::{ExcludedRange, KillOutcome, PortEntry, TreeMember};
 use ports::ShieldState;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
@@ -82,27 +82,13 @@ fn spawn_shield_watcher(app: AppHandle) {
                 Ok(e) => e.clone(),
                 Err(_) => continue,
             };
-            last.retain(|p, _| entries.iter().any(|e| e.port == *p));
             if entries.is_empty() {
+                last.clear();
                 continue;
             }
             let Ok(ports) = ports::scan() else { continue };
-            for e in &entries {
-                let holders: Vec<(u32, String)> = ports
-                    .iter()
-                    .filter(|p| p.proto == "TCP" && p.port == e.port)
-                    .map(|p| (p.pid, p.process_name.clone()))
-                    .collect();
-                let now = ports::shield_check(&e.name, &holders);
-                let previous = last.insert(e.port, now.clone());
-                if previous.is_none() || previous.as_ref() == Some(&now) {
-                    continue;
-                }
-                let alert = match now {
-                    ShieldState::Ok => continue,
-                    ShieldState::Free => ShieldAlert { port: e.port, kind: "free", expected: e.name.clone(), pid: None, process_name: None },
-                    ShieldState::Taken { pid, name } => ShieldAlert { port: e.port, kind: "taken", expected: e.name.clone(), pid: Some(pid), process_name: Some(name) },
-                };
+            let wanted: Vec<(u16, String)> = entries.iter().map(|e| (e.port, e.name.clone())).collect();
+            for alert in ports::shield_step(&wanted, &ports, &mut last) {
                 let _ = app.emit("shield-alert", alert);
                 // Fenêtre masquée (tray) : on la montre ; sinon on fait clignoter la barre des tâches.
                 match app.get_webview_window("main") {

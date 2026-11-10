@@ -7,7 +7,9 @@ use std::time::{Duration, Instant};
 
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
-use crate::models::{ExcludedRange, KillOutcome, PortEntry, TreeMember};
+use std::collections::HashMap;
+
+use crate::models::{ExcludedRange, KillOutcome, PortEntry, ShieldAlert, TreeMember};
 
 /// Ports de développement courants, mis en avant par l'interface.
 pub const DEV_PORTS: [u16; 10] = [
@@ -73,6 +75,37 @@ pub fn shield_check(expected: &str, holders: &[(u32, String)]) -> ShieldState {
         let (pid, name) = &holders[0];
         ShieldState::Taken { pid: *pid, name: name.clone() }
     }
+}
+
+/// Un « tour » de surveillance du Port Shield : compare chaque port surveillé `(port, nom attendu)` à la
+/// liste de ports actuelle et renvoie les alertes à émettre. `last` garde le dernier état connu :
+/// la première observation d'un port est silencieuse, puis on n'alerte qu'à un changement d'état
+/// (jamais deux fois la même alerte), et un retour à la normale ne déclenche rien.
+pub fn shield_step(
+    entries: &[(u16, String)],
+    ports: &[PortEntry],
+    last: &mut HashMap<u16, ShieldState>,
+) -> Vec<ShieldAlert> {
+    last.retain(|p, _| entries.iter().any(|(port, _)| port == p));
+    let mut alerts = Vec::new();
+    for (port, expected) in entries {
+        let holders: Vec<(u32, String)> = ports
+            .iter()
+            .filter(|p| p.proto == "TCP" && p.port == *port)
+            .map(|p| (p.pid, p.process_name.clone()))
+            .collect();
+        let now = shield_check(expected, &holders);
+        let previous = last.insert(*port, now.clone());
+        if previous.is_none() || previous.as_ref() == Some(&now) {
+            continue;
+        }
+        match now {
+            ShieldState::Ok => {}
+            ShieldState::Free => alerts.push(ShieldAlert { port: *port, kind: "free", expected: expected.clone(), pid: None, process_name: None }),
+            ShieldState::Taken { pid, name } => alerts.push(ShieldAlert { port: *port, kind: "taken", expected: expected.clone(), pid: Some(pid), process_name: Some(name) }),
+        }
+    }
+    alerts
 }
 
 /// Famille d'un processus pour la Vue Simple, déduite de son nom et de sa ligne de commande.
@@ -603,6 +636,37 @@ mod tests {
             shield_check("node.exe", &[(7, "python.exe".to_string())]),
             ShieldState::Taken { pid: 7, name: "python.exe".to_string() }
         );
+    }
+
+    fn tcp(port: u16, pid: u32, name: &str) -> PortEntry {
+        PortEntry { port, ..entry(pid, name) }
+    }
+
+    #[test]
+    fn shield_loop_alerts_only_on_state_changes() {
+        let wanted = vec![(3000u16, "node.exe".to_string())];
+        let mut last = HashMap::new();
+        let node = vec![tcp(3000, 10, "node.exe")];
+
+        // 1re observation : silencieuse
+        assert!(shield_step(&wanted, &node, &mut last).is_empty());
+        // rien ne change : pas d'alerte
+        assert!(shield_step(&wanted, &node, &mut last).is_empty());
+        // un autre programme prend le port : une alerte « taken »
+        let py = vec![tcp(3000, 77, "python.exe")];
+        let a = shield_step(&wanted, &py, &mut last);
+        assert_eq!(a.len(), 1);
+        assert_eq!((a[0].kind, a[0].pid, a[0].process_name.as_deref()), ("taken", Some(77), Some("python.exe")));
+        // toujours le même intrus : pas de répétition
+        assert!(shield_step(&wanted, &py, &mut last).is_empty());
+        // le port est libéré : une alerte « free »
+        let a = shield_step(&wanted, &[], &mut last);
+        assert_eq!((a.len(), a[0].kind), (1, "free"));
+        // le même serveur revient (autre PID) : silence
+        assert!(shield_step(&wanted, &[tcp(3000, 99, "node.exe")], &mut last).is_empty());
+        // un port retiré de la liste est oublié : la reprise est de nouveau silencieuse
+        assert!(shield_step(&[], &py, &mut last).is_empty() && last.is_empty());
+        assert!(shield_step(&wanted, &py, &mut last).is_empty());
     }
 
     #[test]
