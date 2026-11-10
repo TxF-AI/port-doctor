@@ -1,42 +1,42 @@
 name: Feature request / Proposer une fonctionnalité
-description: Une idée pour améliorer PortDoctor.
+description: An idea to improve PortDoctor (English or French).
 title: "[Feature] "
 labels: ["enhancement"]
 body:
   - type: textarea
     id: problem
     attributes:
-      label: Problème à résoudre
-      description: Quelle situation concrète te pose problème aujourd'hui ?
-      placeholder: "Mon serveur de dev lance 3 processus et je dois ..."
+      label: Problem to solve
+      description: Which concrete situation is a problem for you today?
+      placeholder: "My dev server starts 3 processes and I have to ..."
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Solution proposée
-      description: Comment imagines-tu que ça fonctionne (interface, comportement) ?
+      label: Proposed solution
+      description: How do you imagine it working (interface, behavior)?
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives envisagées
-      description: Contournements actuels (`netstat`, `taskkill`…), autres outils.
+      label: Alternatives considered
+      description: Current workarounds (`netstat`, `taskkill`…), other tools.
   - type: dropdown
     id: scope
     attributes:
-      label: Concerne
+      label: Area
       options:
-        - Liste et filtres
+        - List and filters
         - Kill / Smart Kill
         - WSL2 / Docker
-        - Hyper-V / plages exclues
-        - System Tray
-        - Autre
+        - Hyper-V / excluded ranges
+        - System tray
+        - Other
   - type: checkboxes
     id: safety
     attributes:
-      label: Sécurité
+      label: Safety
       options:
-        - label: Je comprends que PortDoctor doit continuer à protéger les processus système et à demander une confirmation avant tout arrêt.
+        - label: I understand that PortDoctor must keep protecting system processes and ask for confirmation before any stop.
