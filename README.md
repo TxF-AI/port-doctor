@@ -102,6 +102,7 @@ npm run tauri build -- --no-bundle         # executable: src-tauri\target\releas
 | `src-tauri/src/lib.rs` | Tauri commands and system tray |
 | `src/` | interface in plain JavaScript modules, no framework on purpose (keeps the app tiny): `state.js` (shared state), `render.js` (table, counters), `kill.js` and `tree-dialog.js` (Kill and Smart Kill), `i18n.js` (FR/EN), `main.js` (entry point) |
 | `index.html` | page skeleton (Vite, Tailwind v4) |
+| `CHANGELOG.md` | what changed in each version, with dates |
 | `CLAUDE.md` | project memory: commands, conventions, lessons learned (in French) |
 
 ## 📜 License

@@ -101,6 +101,7 @@ npm run tauri build -- --no-bundle         # exécutable : src-tauri\target\rele
 | `src-tauri/src/models.rs` | types échangés avec l'interface |
 | `src-tauri/src/lib.rs` | commandes Tauri et System Tray |
 | `src/`, `index.html` | interface (JavaScript, Vite, Tailwind v4) |
+| `CHANGELOG.md` | nouveautés de chaque version, avec dates (en anglais) |
 | `CLAUDE.md` | mémoire du projet : commandes, conventions, leçons apprises |
 
 ## 📜 Licence
