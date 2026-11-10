@@ -20,6 +20,12 @@ Un `npm run dev` fermé à la va-vite, un `node.exe` zombie qui tient encore le 
 
 **PortDoctor** liste tous les ports en écoute, te dit qui les tient (processus, chemin, mémoire, provenance Host / WSL2 / Docker) et libère le port en un clic, avec des garde-fous pour ne jamais toucher à Windows. Application native (Rust + Tauri v2), un seul exécutable portable de 4,3 Mo, discrète dans le System Tray. Rien n'est envoyé sur Internet. Interface **bilingue FR / EN** (sélecteur en haut à droite ; langue du système par défaut).
 
+## 🎯 Pour qui ?
+
+* **Développeurs assistés par IA (Cursor, Claude Code, Copilot) :** Résolvez facilement les conflits de ports (`EADDRINUSE`) créés lors des sessions de code grâce à la **Vue simple**, sans aucune commande terminal (`netstat`, `taskkill`).
+* **Développeurs Full-Stack & Web :** Visualisez instantanément les arbres de processus (parent ➔ enfant) et fermez en toute sécurité les processus fantômes qui bloquent vos ports Vite, Next.js ou API backend.
+* **DevOps & Administrateurs Système :** Outil Windows natif et léger (~32 Mo de RAM) avec détection automatique des plages réservées WSL2 & Hyper-V.
+
 ## 🎨 Aperçu de l'Interface
 
 ![Démonstration Animée](assets/demo.fr.gif)

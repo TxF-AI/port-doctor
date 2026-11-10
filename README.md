@@ -20,18 +20,28 @@ A `npm run dev` closed in a hurry, a zombie `node.exe` still holding port 3000, 
 
 **PortDoctor** lists every listening port, tells you who holds it (process, path, memory, Host / WSL2 / Docker origin) and frees the port in one click, with guardrails so it never touches Windows itself. Native app (Rust + Tauri v2), a single portable ~4.3 MB executable, discreet in the system tray. Nothing is sent over the Internet. The interface is **bilingual FR / EN** (selector at the top right; defaults to the system language).
 
+## 🎯 Who is it for?
+
+* **AI-Assisted Coders (Cursor, Claude Code, Copilot):** Effortlessly resolve `EADDRINUSE` port conflicts generated during AI coding sessions using **Simple View**, with zero terminal commands (`netstat`, `taskkill`) required.
+* **Full-Stack & Web Developers:** Instantly visualize process trees (parent ➔ child) and safely terminate ghost processes holding onto Vite, Next.js, or backend API ports.
+* **DevOps & SysAdmins:** Native, ultra-lightweight Windows tool (~32 MB RAM footprint) with automatic WSL2 & Hyper-V port reservation detection.
+
 ## 🎨 Interface preview
 
 ![Animated demo](assets/demo.gif)
 
-*Animated demo (fictitious data): Kill on port 5173, Smart Kill modal (process tree `cmd` → `node` → `node` → child), confirmation and the port is freed.*
+*Animated demo (fictitious data): switch to the **Simple view** (plain-language labels, big **Free port** button), free a port (confirmation, a **toast** notification and the row fades out), then Smart Kill on port 5173: the modal shows the process tree (`cmd` → `node` → `node` → child), and a toast confirms the port is freed.*
 
 <details>
 <summary>Static screenshots</summary>
 
 ![PortDoctor UI](assets/ui-preview.png)
 
-A compact **cyberpunk HUD**, opened from the **system tray** icon (left click). The dense table lists **TCP and UDP** ports with PID, process, memory and **source**: `Host`, `WSL2 (Ubuntu)` or `Docker`. The counter bar summarizes active ports, **Dev ports** (filter and blue edge), and **Hyper-V conflicts** (amber edge and badge: here port 5000 falls inside a reserved range); system processes are locked (`Protégé`, i.e. "Protected"). The search box (`Ctrl+F`) filters by port, name or PID.
+A compact **cyberpunk HUD**, opened from the **system tray** icon (left click). The dense table lists **TCP and UDP** ports with PID, process, memory and **source**: `Host`, `WSL2 (Ubuntu)` or `Docker`. The counter bar summarizes active ports, **Dev ports** (filter and blue edge), and **Hyper-V conflicts** (amber edge and badge: here port 5000 falls inside a reserved range); system processes are locked (`Protected`). The search box (`Ctrl+F`) filters by port, name or PID.
+
+![PortDoctor Simple view](assets/ui-simple.png)
+
+The **Simple view** (checkbox in the header, remembered between launches) hides PID, memory and technical columns: each port shows a plain label ("Node.js app", "Database", "Docker container"…) and a big **Free port** button. After each action a small **toast** confirms the result and the row fades out.
 
 ![PortDoctor Smart Kill](assets/ui-smartkill.png)
 
